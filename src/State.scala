@@ -7,10 +7,32 @@
   * Note that its "value" field is the only one that is mutable - this is to facilitate
   * ttable functionality.
   * */
-class State(val on_move: Player, var value: Int = 0, val pieces: List[Piece]){
+class State(val on_move: Player, var b_value: Float = 0, var w_value: Float = 0, val pieces: List[Piece]){
+  //XXX: Potentially add other fields in support of heuristic evaluation
 
   override def toString: String = {
-    //TODO: Change to pretty-print
+    var str = ""
+
+    var tempstr = ""
+    for (r <- List.range(0, Params.rows)){
+      for (c <- List.range(0, Params.cols)) {
+        val pc = pieces.find((x:Piece) => if (x.getLoc.x == r && x.getLoc.y == c) true else false)
+        pc match {
+          case Some(a) => a.toString    //TODO: Test this
+          case _ => tempstr += "."
+        }
+      }
+      str = tempstr + '\n' + str
+      tempstr = ""
+    }
+
+    if(on_move == White())
+      str = "W\n" + str
+    else
+      str = "B\n" + str
+
+    str
+
   }
 
   /** The purpose of this method is probably obvious.
@@ -29,7 +51,7 @@ class State(val on_move: Player, var value: Int = 0, val pieces: List[Piece]){
           //System.err.println("States have different on_move")
           return false
         }
-        if (this.value != s.value) {
+        if (this.b_value != s.b_value || this.w_value != s.w_value) {
           //System.err.println("States have different value")
           return false
         }

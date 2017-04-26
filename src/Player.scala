@@ -13,11 +13,11 @@ sealed abstract class Player {
   def op(x: Int): Int
   def opposite: Player
 }
-case object Black extends Player {
+case class Black() extends Player {
   def op(x: Int): Int = -x
-  def opposite: Player = White
+  def opposite: Player = White()
 }
-case object White extends Player {
+case class White() extends Player {
   def op(x: Int): Int = x
-  def opposite: Player = Black
+  def opposite: Player = Black()
 }

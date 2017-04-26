@@ -1,44 +1,8 @@
-/** Pieces.scala
-  * Cody Shepherd
+/**
+  * Created by cody on 4/26/17.
   */
 
-/** Loc is just a named pair of x, y coordinates, where x is the row,
-  * and y is the column of the board.
-  * */
-sealed class Loc(val x: Int, val y: Int) {
 
-  override def equals(o: Any): Boolean = {
-    o match {
-      case that: Loc => {
-        if (this.x == that.x && this.y == that.y)
-          true
-        else
-          false
-      }
-      case _ => false
-    }
-  }
-}
-
-/** Piece is an ADT from which Pawn extends. Having the base class here
-  * is a way for me to (hopefully) do less work when it comes time to
-  * implement MiniChess, as I can (hopefully) simply extend the other
-  * piece types from this class.
-  *
-  * A piece works by transforming a state with one of its move functions.
-  * Its move functions are defined by name in funcList, and are stored in
-  * a hash map, whose keys are the values in funcList.
-  * */
-abstract class Piece(p: Player, l: Loc) {
-  val funcs: Map[String, State => State]
-  val funclist: List[String]
-  override def toString() : String
-  override def equals(o: Any): Boolean
-  def getLoc: Loc = this.l
-  def getPlayer: Player = this.p
-  def getMovLoc(m: String): Loc
-  def isLegal(mv: String, s: State) : Boolean
-}
 
 /** Pawn is the basic piece, obviously.
   *
@@ -58,12 +22,18 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     "fwd" -> PartialFunction(fwd),
     "capRight" -> PartialFunction(capRight),
     "capLeft" -> PartialFunction(capLeft)
-    //TODO: Promote
   )
 
   /** The funcList holds the names of all this piece's movement functions.
     * */
   val funclist:List[String] = funcs.keys.toList
+
+  override def toString: String = {
+    p match {
+      case Black() => "p"
+      case White() => "P"
+    }
+  }
 
   /** I needed a special kind of equivalence checking
     * */
@@ -100,6 +70,10 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
     assert(np != st.pieces)
 
+    //TODO: Check for promotion after move
+    //TODO: Check that move is legal
+    //TODO: Update state value
+
     this.p match {
       case a: Black => {
         val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y))
@@ -126,6 +100,10 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
         case a: White => mp.getLoc.x == (this.l.x + 1) && mp.getLoc.y == (this.l.y + 1)
       }
     }
+
+    //TODO: Check for promotion after move
+    //TODO: Check that move is legal
+    //TODO: Update state value
 
     val np = st.pieces.filterNot(removeMe).filterNot(removeCap)
     this.p match {
@@ -155,6 +133,11 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
       }
     }
     val np = st.pieces.filterNot(removeMe).filterNot(removeCap)
+
+    //TODO: Check for promotion after move
+    //TODO: Check that move is legal
+    //TODO: Update state value
+
     this.p match {
       case a: Black => {
         val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y-1))
@@ -166,6 +149,10 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
       }
     }
   }
+
+  def promote(st: State): State = {}
+
+  def isLegal(mv: String, s: State): Boolean = {}
 
   /** Returns the location (coordinates) on which this piece would end up if it performed
     * the given move.
@@ -182,9 +169,3 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
   }
 
 }
-
-case class Rook(p: Player, l: Loc) extends Piece(p,l){}
-case class Knight(p: Player, l: Loc) extends Piece(p,l){}
-case class Bishop(p: Player, l: Loc) extends Piece(p,l){}
-case class Queen(p: Player, l: Loc) extends Piece(p,l){}
-case class King(p: Player, l: Loc) extends Piece(p,l){}

@@ -6,4 +6,7 @@
   * */
 class Terminal {
 
+  // AI or human player
+  // depth of search per AI player
+
 }
