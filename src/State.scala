@@ -7,7 +7,7 @@
   * Note that its "value" field is the only one that is mutable - this is to facilitate
   * ttable functionality.
   * */
-class State(val on_move: Player, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
+class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
   //XXX: Potentially add other fields in support of heuristic evaluation
 
   override def toString: String = {
@@ -15,6 +15,7 @@ class State(val on_move: Player, var b_value: Double = 0, var w_value: Double = 
 
     var tempstr = ""
     for (r <- List.range(0, Params.rows)){
+      tempstr = r.toString
       for (c <- List.range(0, Params.cols)) {
         val pc = pieces.find((x:Piece) => if (x.getLoc.x == r && x.getLoc.y == c) true else false)
         pc match {
@@ -26,10 +27,12 @@ class State(val on_move: Player, var b_value: Double = 0, var w_value: Double = 
       tempstr = ""
     }
 
+    str = str + "\n ABCDE"
+
     if(on_move == White())
-      str = "W\n" + str
+      str = moveNum.toString + " W\n" + str
     else
-      str = "B\n" + str
+      str = moveNum.toString + " B\n" + str
 
     str
 

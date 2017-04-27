@@ -44,15 +44,15 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
 
       // no items found means no capture to worry about; just add the new queen back at the new location
       case 0 =>
-        new State(on_move = this.p.opposite, b_value = s.b_value, w_value = s.w_value, pieces = np :+ newq)
+        new State(on_move = this.p.opposite, moveNum = if(p == White()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value, pieces = np :+ newq)
 
       // we've already asserted that the length is upper bounded by 1; this case represents a capture
       case _ =>
         val nnp = np.filterNot((x: Piece) => x == cappedPiece)
         if(this.p == White())
-          new State(on_move = this.p.opposite, b_value = s.b_value - cappedPiece.value, w_value = s.w_value, pieces = nnp :+ newq)
+          new State(on_move = this.p.opposite, moveNum = if(p == White()) s.moveNum+1 else s.moveNum, b_value = s.b_value - cappedPiece.value, w_value = s.w_value, pieces = nnp :+ newq)
         else
-          new State(on_move = this.p.opposite, b_value = s.b_value, w_value = s.w_value - cappedPiece.value, pieces = nnp :+ newq)
+          new State(on_move = this.p.opposite, moveNum = if(p == White()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value - cappedPiece.value, pieces = nnp :+ newq)
     }
   }
 

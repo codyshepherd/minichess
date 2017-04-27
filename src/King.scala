@@ -3,6 +3,7 @@
   */
 case class King(p: Player, l: Loc) extends Piece(p,l){
 
+  def value : Double = 0.0
   val funcs: Map[String, State => State]
   val funclist: List[String]
   override def toString : String
