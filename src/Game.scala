@@ -17,6 +17,15 @@ object Params {
   val cols = 5
   val rows = 6
 
+  val top = 5
+  val bottom = 0
+
+  val pawn = 1.0
+  val knight = 3.0
+  val bishop = 3.0
+  val rook = 5.0
+  val queen = 9.0
+
   private[this] var _w_time: Double = 5.0
 
   def w_time: Double = _w_time
@@ -35,4 +44,16 @@ object Params {
 
   //TODO: Global time
 
+  def computeVals(l: List[Piece]): (Double, Double) = {
+    var white = 0.0
+    var black = 0.0
+
+    for(p <- l){
+      p.getPlayer match {
+        case Black() => black += p.value
+        case White() => white += p.value
+      }
+    }
+    (black, white)
+  }
 }

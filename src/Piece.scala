@@ -12,12 +12,13 @@
   * a hash map, whose keys are the values in funcList.
   * */
 abstract class Piece(p: Player, l: Loc) {
-  val funcs: Map[String, State => State]
-  val funclist: List[String]
+  //val funcs: Map[String, State => State]
+  val funcList: List[String]
   override def toString : String
   override def equals(o: Any): Boolean
+  def doMove(mv: String, s: State): State
   def getLoc: Loc = this.l
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc
-  def isLegal(mv: String, s: State) : Boolean
+  def value : Double
 }

@@ -7,7 +7,7 @@
   * Note that its "value" field is the only one that is mutable - this is to facilitate
   * ttable functionality.
   * */
-class State(val on_move: Player, var b_value: Float = 0, var w_value: Float = 0, val pieces: List[Piece]){
+class State(val on_move: Player, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
   //XXX: Potentially add other fields in support of heuristic evaluation
 
   override def toString: String = {

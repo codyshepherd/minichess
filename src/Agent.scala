@@ -5,6 +5,8 @@
 /** This class represents the AI Player that makes moves and plays the game.
   * */
 class Agent {
+  //responsible for checking that a prospective move is legal
+
   //Keep track of board piece value as you go -- state.value?
 
   //heuristics for move ordering:

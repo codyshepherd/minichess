@@ -11,6 +11,8 @@
   * */
 case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
+  def value : Double = 1.0
+
   /** funcs is a hash map of all the movement functions this piece can perform.
     * By convention its members should only be accessed through the items in
     * this piece's funcList. This will allow generating a piece's moves to be
@@ -26,7 +28,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
   /** The funcList holds the names of all this piece's movement functions.
     * */
-  val funclist:List[String] = funcs.keys.toList
+  val funcList:List[String] = funcs.keys.toList
 
   override def toString: String = {
     p match {
@@ -39,14 +41,19 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     * */
   override def equals(o:Any): Boolean = {
     o match {
-      case that: Pawn => {
+
+      case that: Pawn =>
         if (this.p == that.p && this.l == that.l)
           true
         else
           false
-      }
+
       case _ => false
     }
+  }
+
+  def doMove(mv: String, s: State): State = {
+    funcs(mv)(s)
   }
 
   /** Returns the state derived when this piece moves forward, given the argument
@@ -57,32 +64,47 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     * (Should probably figure
     * out a way to handle some possibility where this piece does not exist in the
     * given state)
+    *
+    * Pawns have the special case that they could be promoted
     * */
   def fwd(st: State): State = {
-    val pred = PartialFunction(this.l.equals)
     val np = st.pieces.filterNot((x: Piece) => x == this)
 
-    /*
-    System.err.println("Function fwd")
-    System.err.println("s.pieces: " + st.pieces)
-    System.err.println("np: " + np)
-    */
-
     assert(np != st.pieces)
-
-    //TODO: Check for promotion after move
-    //TODO: Check that move is legal
-    //TODO: Update state value
+    val newLoc = getMovLoc("fwd")
+    val addMe = Params.queen - 1.0
 
     this.p match {
-      case a: Black => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
-      case a: White => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x+1, y = this.l.y))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
+
+      case Black() =>
+        //check for promotion
+        if(newLoc.x == Params.bottom) {
+          // if promoted, make a queen
+          val newq = Queen(this.p, l = newLoc)
+          // add back the queen, modifying this player's value
+          new State(on_move = this.p.opposite, b_value = st.b_value + addMe, w_value = st.w_value, pieces = np :+ newq)
+        }
+        else {
+          // not promoted, make a pawn
+          val newp = Pawn(p = this.p, l = newLoc)
+          // add back the pawn, no change to the value of either state
+          new State(on_move = this.p.opposite, b_value = st.b_value, w_value = st.w_value, pieces = np :+ newp)
+        }
+
+      case White() =>
+        //check for promotion
+        if(newLoc.x == Params.top) {
+          // if promoted, make a queen
+          val newq = Queen(this.p, l = newLoc)
+          // return new state, adding the queen and modifying this player's value
+          new State(on_move = this.p.opposite, b_value = st.b_value, w_value = st.w_value + addMe, pieces = np :+ newq)
+        }
+        else {
+          // if not promoted, make a pawn
+          val newp = Pawn(p = this.p, l = newLoc)
+          // add back the pawn, no change to value of either side
+          new State(on_move = this.p.opposite, b_value = st.b_value, w_value = st.w_value, pieces = np :+ newp)
+        }
     }
   }
 
@@ -91,30 +113,53 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     * of either piece.
     *
     * Assumes capturing to the right has already been deemed legal.
+    *
+    * XXX: capRight and capLeft are now identical functions, except for the string passed to
+    * getMovLoc(). I wonder if it would be worthwhile to consolidate them (probably)
     * */
   def capRight(st: State): State = {
+    val newLoc = getMovLoc("capRight")                              // the new location the piece will move to
     val removeMe = (x: Piece) => x == this
-    val removeCap = {
-      (mp: Piece) => this.getPlayer match {
-        case a: Black => mp.getLoc.x == (this.l.x - 1) && mp.getLoc.y == (this.l.y + 1)
-        case a: White => mp.getLoc.x == (this.l.x + 1) && mp.getLoc.y == (this.l.y + 1)
-      }
-    }
+    val removeCap = (mp: Piece) => mp.getLoc == newLoc
 
-    //TODO: Check for promotion after move
-    //TODO: Check that move is legal
-    //TODO: Update state value
+    val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
+    assert(capped.length == 1)
+    val subMe = capped(1).value                                     // the value of the captured piece
+    val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
+    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
+    assert(np != st.pieces)
 
-    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)
     this.p match {
-      case a: Black => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y+1))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
-      case a: White => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x+1, y = this.l.y+1))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
+
+      case Black() =>
+        //check for Promotion
+        if(newLoc.x == Params.bottom){
+          // if promoted, make the new piece a queen
+          val newq = Queen(this.p, l = newLoc)
+          // return the new state, modifying the values for both sides
+          new State(on_move = this.p.opposite, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = np :+ newq)
+        }
+        else {
+          // not promoted, so just make a pawn with the new location
+          val newp = Pawn(p = this.p, l = newLoc)
+          // return the new state, modifying only the opponent's value
+          new State(on_move = this.p.opposite, b_value = st.b_value, w_value = st.w_value - subMe, pieces = np :+ newp)
+        }
+
+      case White() =>
+        // check for promotion
+        if(newLoc.x == Params.top){
+          // if promoted, make the new piece a queen
+          val newq = Queen(this.p, l = newLoc)
+          // return the new state, modifying the values for both sides
+          new State(on_move = this.p.opposite, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = np :+ newq)
+        }
+        else {
+          // if not promoted, make a pawn
+          val newp = Pawn(p = this.p, l = newLoc)
+          // add back the pawn, modify just the opponent' value
+          new State(on_move = this.p.opposite, b_value = st.b_value - subMe, w_value = st.w_value, pieces = np :+ newp)
+        }
     }
   }
 
@@ -122,37 +167,55 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     * and the captured piece is at a lower column than this piece, irregardless of the
     * color of either piece.
     *
-    * Assumes capturig to the left has already been deemed legal.
+    * Assumes capturing to the left has already been deemed legal.
     * */
   def capLeft(st: State): State = {
-    val removeMe = (x: Piece) => x == this
-    val removeCap = {
-      (mp: Piece) => this.getPlayer match {
-        case a: Black => mp.getLoc.x == (this.l.x - 1) && mp.getLoc.y == (this.l.y - 1)
-        case a: White => mp.getLoc.x == (this.l.x + 1) && mp.getLoc.y == (this.l.y - 1)
-      }
-    }
-    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)
+    val newLoc = getMovLoc("capLeft")                              // the new location the piece will move to
 
-    //TODO: Check for promotion after move
-    //TODO: Check that move is legal
-    //TODO: Update state value
+    val removeMe = (x: Piece) => x == this
+    val removeCap = (mp: Piece) => mp.getLoc == newLoc
+
+    val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
+    assert(capped.length == 1)
+    val subMe = capped(1).value                                     // the value of the captured piece
+    val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
+    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
+    assert(np != st.pieces)
 
     this.p match {
-      case a: Black => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x-1, y = this.l.y-1))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
-      case a: White => {
-        val newp = Pawn(p = this.p, l = new Loc(x = this.l.x+1, y = this.l.y-1))
-        new State(on_move = this.p.opposite, pieces = np :+ newp)
-      }
+
+      case Black() =>
+        //check for Promotion
+        if(newLoc.x == Params.bottom){
+          // if promoted, make the new piece a queen
+          val newq = Queen(this.p, l = newLoc)
+          // return the new state, modifying the values for both sides
+          new State(on_move = this.p.opposite, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = np :+ newq)
+        }
+        else {
+          // not promoted, so just make a pawn with the new location
+          val newp = Pawn(p = this.p, l = newLoc)
+          // return the new state, modifying only the opponent's value
+          new State(on_move = this.p.opposite, b_value = st.b_value, w_value = st.w_value - subMe, pieces = np :+ newp)
+        }
+
+      case White() =>
+        // check for promotion
+        if(newLoc.x == Params.top){
+          // if promoted, make the new piece a queen
+          val newq = Queen(this.p, l = newLoc)
+          // return the new state, modifying the values for both sides
+          new State(on_move = this.p.opposite, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = np :+ newq)
+        }
+        else {
+          // if not promoted, make a pawn
+          val newp = Pawn(p = this.p, l = newLoc)
+          // add back the pawn, modify just the opponent' value
+          new State(on_move = this.p.opposite, b_value = st.b_value - subMe, w_value = st.w_value, pieces = np :+ newp)
+        }
     }
+
   }
-
-  def promote(st: State): State = {}
-
-  def isLegal(mv: String, s: State): Boolean = {}
 
   /** Returns the location (coordinates) on which this piece would end up if it performed
     * the given move.
@@ -167,5 +230,6 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
       case "capLeft" => new Loc(x = newx, y = this.l.y - 1 )
     }
   }
+
 
 }

@@ -15,6 +15,7 @@ sealed class Loc(val x: Int, val y: Int) {
         else
           false
       }
+      case that: (Int, Int) => if(this.x == that._1 && this.y == that._2) true else false
       case _ => false
     }
   }
