@@ -15,19 +15,16 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
 
     var tempstr = ""
     for (r <- List.range(0, Params.rows)){
-      tempstr = r.toString
       for (c <- List.range(0, Params.cols)) {
         val pc = pieces.find((x:Piece) => if (x.getLoc.x == r && x.getLoc.y == c) true else false)
         pc match {
-          case Some(a) => a.toString    //TODO: Test this
+          case Some(a) => tempstr += a.toString    //TODO: Test this
           case _ => tempstr += "."
         }
       }
       str = tempstr + '\n' + str
       tempstr = ""
     }
-
-    str = str + "\n ABCDE"
 
     if(on_move == White())
       str = moveNum.toString + " W\n" + str

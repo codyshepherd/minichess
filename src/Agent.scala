@@ -21,6 +21,8 @@ sealed abstract class Agent(p: Player) {
     // use with ttable to amortize work done
     // "Iterative deepening"
 
+  // Thinking on opponent's time
+
   val colMap: Map[Char, Col] = Map[Char, Col](
     'a' -> A(),
     'b' -> B(),
