@@ -21,4 +21,14 @@ abstract class Piece(p: Player, l: Loc) {
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc
   def value : Double
+  def isLegal(mv: String, s: State): Boolean
+  def legalMoves(s: State): List[String]
+  def isInBounds(l:Loc): Boolean = {
+    if (l.x < Params.bottom || l.x >= Params.top)
+      false
+    else if (l.y < Params.leftLimit || l.y >= Params.rightLimit)
+      false
+    else
+      true
+  }
 }

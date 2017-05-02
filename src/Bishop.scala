@@ -2,7 +2,8 @@
   * Created by cody on 4/26/17.
   */
 case class Bishop(p: Player, l: Loc) extends Piece(p,l){
-  val funcList = List("fwdRight", "fwdLeft", "bakRight", "bakLeft", "fwdOne", "bakOne", "leftOne", "rightOne")
+  val funcList = List("fwdRight", "fwdLeft", "bakRight", "bakLeft", "fwd1", "bak1", "left1", "right1")
+  val altFuncList = List("fwd1", "bak1", "left1", "right1")
 
   def value : Double = 3.0
 
@@ -64,10 +65,10 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
     if (!funcList.contains(mov))
       return new Loc(-1, -1)
     mov match {
-      case "fwdOne" => new Loc(x = this.l.x + p.op(1), y = this.l.y)
-      case "bakOne" => new Loc(x = this.l.x - p.op(1), y = this.l.y)
-      case "leftOne" => new Loc(x = this.l.x, y = this.l.y - 1)
-      case "rightOne" => new Loc(x = this.l.x, y = this.l.y + 1)
+      case "fwd1" => new Loc(x = this.l.x + p.op(1), y = this.l.y)
+      case "bak1" => new Loc(x = this.l.x - p.op(1), y = this.l.y)
+      case "left1" => new Loc(x = this.l.x, y = this.l.y - 1)
+      case "right1" => new Loc(x = this.l.x, y = this.l.y + 1)
       case "fwdLeft" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y - nToMov)
       case "fwdRight" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y + nToMov)
       case "bakLeft" => new Loc(x = this.l.x - this.p.op(nToMov), y = this.l.y - nToMov)
@@ -76,4 +77,74 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
     }
   }
 
+  def isLegal(mv: String, s: State): Boolean = {
+    val move = mv.init
+    if (!funcList.contains(move) && !funcList.contains(mv))
+      return false
+
+    val newLoc = getMovLoc(mv)
+
+    if (!isInBounds(newLoc))
+      return false
+
+    val ydiff = newLoc.y - this.l.y
+    val xdiff = newLoc.x - this.l.x
+
+    val cols = ydiff match {
+      case yd if yd == 0 => List.fill(math.abs(xdiff))(newLoc.y)
+      case yd if yd > 0 => List.range(this.l.y+1, newLoc.y)
+      case yd if yd < 0 => List.range(newLoc.y+1, this.l.y)
+    }
+
+    val rows = xdiff match {
+      case xd if xd == 0 => List.fill(math.abs(ydiff))(newLoc.x)
+      case xd if xd > 0 => List.range(this.l.x+1, newLoc.x)
+      case xd if xd < 0 => List.range(newLoc.x+1, this.l.x)
+    }
+
+    val path = rows zip cols
+
+    for(location <- path){
+      if (s.pieces.exists((p: Piece) => p.getLoc == new Loc(location._1, location._2)))
+        return false
+    }
+
+    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+    maybePiece match {
+      case Some(a) => if(altFuncList.contains(mv)){   // if there is a piece there and Bishop is doing non-capping move, say no
+        false
+      }
+      else                                            // otherwise, capping move
+        a.getPlayer match {
+          case this.p.opposite => true        // as long as that piece is the opponent's, sure
+          case _ => false                     // if the piece there is our piece, then no
+        }
+      case None => true                       // otherwise that location is empty, so yes, going there is legal
+    }
+  }
+
+  def movesWhilePathClear(mv: String, s: State): List[String] = {
+    var moves: List[String] = List()
+    for (i <- List.range(1,Params.rows)){
+      val move = mv + i.toString
+      if (!isLegal(move, s))
+        return moves
+      else
+        moves = moves :+ move
+    }
+    moves
+  }
+
+  def legalMoves(s: State): List[String] = {
+    var moves: List[String] = List()
+    for(move <- funcList) {
+      if(altFuncList.contains(move)){
+        if(isLegal(move, s))
+          moves = moves :+ move
+      }
+      else
+        moves = moves ++ movesWhilePathClear(move, s)
+    }
+    moves
+  }
 }

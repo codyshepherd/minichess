@@ -95,5 +95,37 @@ case class Knight(p: Player, l: Loc) extends Piece(p,l){
 
     }
   }
+
+  def isLegal(mv: String, s: State): Boolean = {
+    val move = mv.init
+    if (!funcList.contains(move))
+      return false
+
+    val newLoc = getMovLoc(mv)
+
+    if (!isInBounds(newLoc))
+      return false
+
+    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+    maybePiece match {
+      case Some(a) => a.getPlayer match {   // if there is a piece at the new location
+        case this.p.opposite => true        // as long as that piece is the opponent's, sure
+        case _ => false                     // if the piece there is our piece, then no
+      }
+      case None => true                     // we can move to an blank space we can reach
+    }
+  }
+
+  def legalMoves(s: State): List[String] = {
+    var moves: List[String] = List()
+    for(move <- funcList){
+      for (i <- List.range(1,5)){       // every knight move takes a number between 1 and 4 (inclusive) as argument
+        val mv = move + i.toString
+        if (isLegal(mv, s))
+          moves = moves :+ mv
+      }
+    }
+    moves
+  }
 }
 

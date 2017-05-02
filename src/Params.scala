@@ -13,6 +13,9 @@ object Params {
   val top = 5
   val bottom = 0
 
+  val leftLimit = 0
+  val rightLimit = 6
+
   val pawn = 1.0
   val knight = 3.0
   val bishop = 3.0

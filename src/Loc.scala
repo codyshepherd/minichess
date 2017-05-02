@@ -19,4 +19,26 @@ sealed class Loc(val x: Int, val y: Int) {
       case _ => false
     }
   }
+
+  def toColRow: (Col, Row) = {
+    val row: Row = this.x match {
+      case 0 => R1()
+      case 1 => R2()
+      case 2 => R3()
+      case 3 => R4()
+      case 4 => R5()
+      case 5 => R6()
+      case _ => Z()
+    }
+    val col: Col = this.y match {
+      case 0 => A()
+      case 1 => B()
+      case 2 => C()
+      case 3 => D()
+      case 4 => E()
+      case _ => X()
+    }
+
+    (col, row)
+  }
 }

@@ -243,5 +243,43 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     }
   }
 
+  def isLegal(mv: String, s: State): Boolean = {
+    if (!funcList.contains(mv))
+      return false
+
+    val newLoc = getMovLoc(mv)
+
+    if (!isInBounds(newLoc))
+      return false
+
+    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+
+    maybePiece match {
+      case Some(a) => a.getPlayer match {   // if there is a piece at the new location
+        case this.p.opposite => {           // if the piece there is the opponent
+          if (mv == "capLeft" || mv == "capRight")  // if this move is a capture move, yes, otherwise no
+            true
+          else
+            false
+        }
+        case _ => false                     // if the piece there is our piece, then no
+        }
+      case None => {                        // if there is no piece
+        if (mv == "fwd")                    // as long as our move is "forward" sure, otherwise, no
+          true
+        else
+          false
+      }
+    }
+  }
+
+  def legalMoves(s: State): List[String] = {
+    var moves: List[String] = List()
+    for(move <- funcList){
+      if(isLegal(move,s))
+        moves = moves :+ move
+    }
+    moves
+  }
 
 }

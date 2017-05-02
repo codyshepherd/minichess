@@ -1,3 +1,4 @@
+
 /**
   * Created by cody on 4/26/17.
   */
@@ -45,12 +46,111 @@ sealed abstract class Agent(p: Player) {
 
 case class AI(p: Player) extends Agent(p) {
 
-  def move(s: State): Move = {
-    new Noop()
+
+
+  /*
+  def isLegal(piece: Piece, mv: String, s: State): Boolean = {
+    val newLoc = piece.getMovLoc(mv)
+
+    if(newLoc == piece.getLoc)
+      return true
+
+    if(!isInBounds(newLoc))
+      return false
+
+    val thoseAtLoc = s.pieces.filter((p: Piece) => p.getLoc == newLoc)
+    assert(thoseAtLoc.length <= 1)
+    val atLoc = thoseAtLoc.head
+
+    atLoc match {}
+
+
+  }
+  */
+
+  def stringToMove(p: Piece, s: String): Move = {
+    val newLoc = p.getMovLoc(s)
+    val fromRow: Row = p.getLoc.x match {
+      case 0 => R1()
+      case 1 => R2()
+      case 2 => R3()
+      case 3 => R4()
+      case 4 => R5()
+      case 5 => R6()
+      case _ => Z()
+    }
+    val fromCol: Col = p.getLoc.y match {
+      case 0 => A()
+      case 1 => B()
+      case 2 => C()
+      case 3 => D()
+      case 4 => E()
+      case _ => X()
+    }
+    val toRow: Row = newLoc.x match {
+      case 0 => R1()
+      case 1 => R2()
+      case 2 => R3()
+      case 3 => R4()
+      case 4 => R5()
+      case 5 => R6()
+      case _ => Z()
+    }
+    val toCol: Col = newLoc.y match {
+      case 0 => A()
+      case 1 => B()
+      case 2 => C()
+      case 3 => D()
+      case 4 => E()
+      case _ => X()
+    }
+    new Move(p, s, (fromCol, fromRow), (toCol, toRow))
+  }
+
+  def getLegalMoves(s: State): List[Move] = {
+    val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == this.p)
+
+    var moves: List[Move] = List()
+
+    for (piece <- mypieces){
+      val pieceMoves = piece.legalMoves(s)
+      for(move <- pieceMoves){
+        moves = moves :+ stringToMove(piece, move)
+      }
+    }
+    moves
+  }
+
+  def heuristicSort(mvs: List[Move]): List[Move] = mvs    //TODO: This
+
+  def move(s: State): String = {
+
+    //xxx: check ttable
+
+    if (s.on_move != this.p){
+      //think on opponent's time
+      new Noop().toString
+    }
+    else{
+      val sortedMoves = heuristicSort(getLegalMoves(s))
+
+      var bestMove: Move = new Noop()
+      var bestMoveVal = 0
+      var moveVal = 0
+
+      for (move <- sortedMoves){
+        moveVal = alphaBeta(move.go(s))
+        if (moveVal > bestMoveVal){
+          bestMoveVal = moveVal
+          bestMove = move
+        }
+      }
+      bestMove.toString
+    }
   }
 
 }
-
+/*
 case class Human (p: Player) extends Agent(p) {
 
   def move(s: State): Move = {
@@ -77,3 +177,4 @@ case class Human (p: Player) extends Agent(p) {
   }
 
 }
+*/

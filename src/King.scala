@@ -71,5 +71,34 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
     }
   }
 
+  def isLegal(mv: String, s: State): Boolean = {
+
+    if (!funcList.contains(mv))
+      return false
+
+    val newLoc = getMovLoc(mv)
+
+    if (!isInBounds(newLoc))
+      return false
+
+    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+
+    maybePiece match {
+      case Some(a) => a.getPlayer match {   // if there is a piece at the new location
+        case this.p.opposite => true        // as long as that piece is the opponent's, sure
+        case _ => false                     // if the piece there is our piece, then no
+      }
+      case None => true                     // we can move into check, so, sure
+    }
+  }
+
+  def legalMoves(s: State): List[String] = {
+    var moves: List[String] = List()
+    for(move <- funcList){
+      if(isLegal(move,s))
+        moves = moves :+ move
+    }
+    moves
+  }
 }
 

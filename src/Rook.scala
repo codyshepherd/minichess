@@ -71,5 +71,65 @@ case class Rook(p: Player, l: Loc) extends Piece(p,l){
     }
   }
 
+  def isLegal(mv: String, s: State): Boolean = {
+    val move = mv.init
+    if (!funcList.contains(move))
+      return false
+
+    val newLoc = getMovLoc(mv)
+
+    if (!isInBounds(newLoc))
+      return false
+
+    val ydiff = newLoc.y - this.l.y
+    val xdiff = newLoc.x - this.l.x
+
+    val cols = ydiff match {
+      case yd if yd == 0 => List.fill(math.abs(xdiff))(newLoc.y)
+      case yd if yd > 0 => List.range(this.l.y+1, newLoc.y)
+      case yd if yd < 0 => List.range(newLoc.y+1, this.l.y)
+    }
+
+    val rows = xdiff match {
+      case xd if xd == 0 => List.fill(math.abs(ydiff))(newLoc.x)
+      case xd if xd > 0 => List.range(this.l.x+1, newLoc.x)
+      case xd if xd < 0 => List.range(newLoc.x+1, this.l.x)
+    }
+
+    val path = rows zip cols
+
+    for(location <- path){
+      if (s.pieces.exists((p: Piece) => p.getLoc == new Loc(location._1, location._2)))
+        return false
+    }
+
+    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+    maybePiece match {
+      case Some(a) => a.getPlayer match {   // if there is a piece at the new location
+        case this.p.opposite => true        // as long as that piece is the opponent's, sure
+        case _ => false                     // if the piece there is our piece, then no
+      }
+      case None => true                     // we can move into check, so, sure
+    }
+  }
+
+  def movesWhilePathClear(mv: String, s: State): List[String] = {
+    var moves: List[String] = List()
+    for (i <- List.range(1,Params.rows)){
+      val move = mv + i.toString
+      if (!isLegal(move, s))
+        return moves
+      else
+        moves = moves :+ move
+    }
+    moves
+  }
+
+  def legalMoves(s: State): List[String] = {
+    var moves: List[String] = List()
+    for(move <- funcList)
+      moves = moves ++ movesWhilePathClear(move, s)
+    moves
+  }
 }
 
