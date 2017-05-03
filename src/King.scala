@@ -85,7 +85,7 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
 
     maybePiece match {
       case Some(a) => a.getPlayer match {   // if there is a piece at the new location
-        case this.p.opposite => true        // as long as that piece is the opponent's, sure
+        case c if c == this.p.opposite => true        // as long as that piece is the opponent's, sure
         case _ => false                     // if the piece there is our piece, then no
       }
       case None => true                     // we can move into check, so, sure

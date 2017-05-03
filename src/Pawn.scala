@@ -256,7 +256,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
     maybePiece match {
       case Some(a) => a.getPlayer match {   // if there is a piece at the new location
-        case this.p.opposite => {           // if the piece there is the opponent
+        case c if c == this.p.opposite => {           // if the piece there is the opponent
           if (mv == "capLeft" || mv == "capRight")  // if this move is a capture move, yes, otherwise no
             true
           else

@@ -41,7 +41,7 @@ sealed abstract class Agent(p: Player) {
     '6' -> R6()
   ).withDefaultValue(Z())
 
-  def move(s: State): Move
+  def move(s: State): String
 }
 
 case class AI(p: Player) extends Agent(p) {
@@ -121,25 +121,80 @@ case class AI(p: Player) extends Agent(p) {
     moves
   }
 
-  def heuristicSort(mvs: List[Move]): List[Move] = mvs    //TODO: This
+  def heuristicSort(mvs: List[Move], s: State): List[Move] = {
+    val zipped = mvs zip (for (move <- mvs) yield move.go(s))
+
+    s.on_move match {
+      case White() => (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.w_value > e2._2.w_value)) yield tup._1).toList
+      case Black() => (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.b_value > e2._2.b_value)) yield tup._1).toList
+    }
+
+  }
+
+  def isWin(s: State): Boolean = {
+    val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
+    val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
+
+    if (!whitePieces.contains((p: Piece) => p.isInstanceOf[King]) || !blackPieces.contains((p: Piece) => p.isInstanceOf[King]))
+      true
+    else
+      false
+  }
+
+  def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double, player: Player): Double = {
+    if (depth == 0 || isWin(s)){
+      player match {
+        case White() => s.w_value
+        case Black() => s.b_value
+      }
+    }
+
+    if(player == s.on_move){
+      var v: Double = Double.NegativeInfinity
+      val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
+      val moves = (for(piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
+
+      for (move <- moves){
+        v = math.max(v, alphaBeta(move, depth - 1, alpha, beta, player))
+        val tempAlpha = math.max(alpha, v)
+        if (beta <= tempAlpha)
+          return v  // beta cut-off
+      }
+      v
+    }
+    else {
+      var v: Double = Double.PositiveInfinity
+      val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
+      val moves = (for(piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
+
+      for (move <- moves){
+        v = math.min(v, alphaBeta(move, depth - 1, alpha, beta, player))
+        val tempBeta = math.min(alpha, v)
+        if (tempBeta <= alpha)
+          return v  // beta cut-off
+      }
+      v
+    }
+
+  }
 
   def move(s: State): String = {
 
     //xxx: check ttable
 
     if (s.on_move != this.p){
-      //think on opponent's time
+      //xxx: think on opponent's time
       new Noop().toString
     }
     else{
-      val sortedMoves = heuristicSort(getLegalMoves(s))
+      val sortedMoves = heuristicSort(getLegalMoves(s), s)
 
       var bestMove: Move = new Noop()
-      var bestMoveVal = 0
-      var moveVal = 0
+      var bestMoveVal: Double = 0.0
+      var moveVal: Double = 0.0
 
       for (move <- sortedMoves){
-        moveVal = alphaBeta(move.go(s))
+        moveVal = alphaBeta(move.go(s), Params.plyDepth, Double.NegativeInfinity, Double.PositiveInfinity, s.on_move)
         if (moveVal > bestMoveVal){
           bestMoveVal = moveVal
           bestMove = move

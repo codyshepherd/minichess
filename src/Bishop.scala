@@ -116,7 +116,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
       }
       else                                            // otherwise, capping move
         a.getPlayer match {
-          case this.p.opposite => true        // as long as that piece is the opponent's, sure
+          case c if c == this.p.opposite => true        // as long as that piece is the opponent's, sure
           case _ => false                     // if the piece there is our piece, then no
         }
       case None => true                       // otherwise that location is empty, so yes, going there is legal

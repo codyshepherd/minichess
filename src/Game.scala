@@ -16,11 +16,11 @@ import scala.io.Source
   * */
 class Game(p1: Agent, p2: Agent) {
 
-  val s = stateFromFile()
+  val s: State = stateFromFile()
 
-  print(s.toString)
+  //print(s.toString)
 
-  def stateFromFile(file: String = "start.txt"): State = {
+  def stateFromFile(file: String = "/Users/cody/IdeaProjects/minichess/src/start.txt"): State = {
     val lines: Iterator[String] = Source.fromFile(file).getLines()
 
     Params.stringsToState(lines.toList)
