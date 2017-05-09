@@ -39,7 +39,30 @@ sealed abstract class Agent(p: Player) {
     '4' -> R4(),
     '5' -> R5(),
     '6' -> R6()
-  ).withDefaultValue(Z())
+  ).withDefaultValue(Z())A
+
+  def stringToLoc(s: String): Loc = {
+    if(s.length != 2)
+      return new Loc(-1,-1)
+
+    val row = s.last match {
+      case '1' => 0
+      case '2' => 1
+      case '3' => 2
+      case '4' => 3
+      case '5' => 4
+      case '6' => 5
+    }
+
+    val col = s.head match {
+      case 'a' => 0
+      case 'b' => 1
+      case 'c' => 2
+      case 'd' => 3
+      case 'e' => 4
+    }
+    new Loc(row, col)
+  }
 
   def move(s: State): String
 }
@@ -205,30 +228,44 @@ case class AI(p: Player) extends Agent(p) {
   }
 
 }
+
 /*
 case class Human (p: Player) extends Agent(p) {
 
   def move(s: State): Move = {
-    while(true) {
+    var legalMove = false
+    while(!legalMove) {
       val line = scala.io.StdIn.readLine()
-      val mv = stringToMove(line)
-      mv match {
-        case Some(a) => return a
-        case None =>
+      if (line.length == 5){
+        val mvstring = line.split("-")
+        val from = stringToLoc(mvstring.head)
+
+        val pieceToMove = s.pieces.find((p: Piece) => p.getLoc == from)
+
+        val to = stringToLoc(mvstring.last)
+
+        val move: String = pieceToMove match {
+          case Some(a) => {
+            var temp: String = ""
+            a.getPlayer match {
+              case Black() => {
+                if(to.x < from.x)
+                  temp = temp + "fwd"
+                else if(to.x > from.x)
+                  temp = temp + "bak"
+              }
+              case White() =>
+            }
+          }
+          case None =>
+        }
       }
     }
     new Noop()
   }
 
-  def stringToMove(s: String): Option[Move] = {
-    if(s.length != 5)
-      return None
-
-    val mvlist = s.split(" ")
-    val from = mvlist.head
-    val to = mvlist.last
-
-    Option(new Move((colMap(from.head), rowMap(from.last)), (colMap(to.head), rowMap(to.last))))
+  def stringToMove(mv: String, s: State): Move = {
+    new Move(pieceToMove, (colMap(from.head), rowMap(from.last)), (colMap(to.head), rowMap(to.last)))
   }
 
 }

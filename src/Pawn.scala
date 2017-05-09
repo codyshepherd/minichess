@@ -128,7 +128,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
     val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
     assert(capped.length == 1)
-    val subMe = capped(1).value                                     // the value of the captured piece
+    val subMe = capped(0).value                                     // the value of the captured piece
     val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
     val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
     assert(np != st.pieces)
@@ -185,7 +185,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
 
     val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
     assert(capped.length == 1)
-    val subMe = capped(1).value                                     // the value of the captured piece
+    val subMe = capped(0).value                                     // the value of the captured piece
     val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
     val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
     assert(np != st.pieces)

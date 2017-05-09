@@ -16,4 +16,29 @@ class Terminal {
 
   // three-digit response codes from imcs server
 
+
+  val cmds = Map(
+    "remote" -> PartialFunction(remote)
+  )
+
+  def runtime(): Unit = {
+    while(true){
+      val lines = scala.io.StdIn.readLine().split(" ")
+      if(checkCmd(lines.head))
+        cmds(lines.head)(lines.tail)
+    }
+  }
+
+  def checkCmd(s: String): Boolean = {
+    cmds.keys.find((p: String) => p == s) match {
+      case Some(a) => true
+      case None => false
+    }
+  }
+
+  def remote(args: Array[String]): Boolean = {
+    val c = new Comms()
+
+  }
+
 }

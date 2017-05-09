@@ -1,4 +1,3 @@
-import scala.io.Source
 
 /**
   * Created by cody on 4/26/17.
@@ -16,15 +15,15 @@ import scala.io.Source
   * */
 class Game(p1: Agent, p2: Agent) {
 
-  val s: State = stateFromFile()
+  val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
+
+  val s: State = Params.stateFromFile(path ++ "pawnfwd.txt")
+
+
 
   //print(s.toString)
 
-  def stateFromFile(file: String = "/Users/cody/IdeaProjects/minichess/src/start.txt"): State = {
-    val lines: Iterator[String] = Source.fromFile(file).getLines()
-
-    Params.stringsToState(lines.toList)
-  }
 
 }
+
 

@@ -3,6 +3,7 @@
   */
 import java.time.LocalTime
 import java.time.ZoneId
+import scala.io.Source
 
 /** Static global values
   * */
@@ -108,10 +109,15 @@ object Params {
       w_value = vals._2,
       pieces = ps)
 
-    System.err.println("stringToState state s: \n" +  state.toString)
+    //System.err.println("stringToState state s: \n" +  state.toString)
 
     state
   }
 
+  def stateFromFile(file: String): State = {
+    val lines: Iterator[String] = Source.fromFile(file).getLines()
+
+    Params.stringsToState(lines.toList)
+  }
 
 }

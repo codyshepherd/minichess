@@ -58,7 +58,6 @@ class Move (p: Piece, mv: String, from: (Col, Row), to: (Col, Row)) {
     p.doMove(mv, s)
   }
 
-
 }
 class Noop (p: Piece = Pawn(White(), new Loc(-1,-1)),
             mv: String = "Noop",
