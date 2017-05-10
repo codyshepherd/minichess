@@ -77,9 +77,30 @@ class Tester {
 
   }
 
+  def testKing(): Unit = {
+    val w0 = Params.stateFromFile(path ++ "pawnfwd.txt")
+
+    val k1 = w0.pieces.filter((p: Piece) => p.getLoc == (0,4) && p.getPlayer==w0.on_move).head
+
+    val mvs = k1.legalMoves(w0)
+    assert(mvs.isEmpty)
+  }
+
+  def testKnight(): Unit = {
+    val w0 = Params.stateFromFile(path ++ "pawnfwd.txt")
+
+    val n1 = w0.pieces.filter((p: Piece) => p.getLoc == (0,1) && p.getPlayer==w0.on_move).head
+
+    val mvs = n1.legalMoves(w0)
+    assert(mvs == List("longLeft1", "longRight1", "shortLeft2", "shortRight4"))
+
+  }
+
   def testAll(): Unit = {
     testGame()
     testPawn()
+    testKnight()
+    testKing()
   }
 
 }

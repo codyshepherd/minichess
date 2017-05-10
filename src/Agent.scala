@@ -39,7 +39,7 @@ sealed abstract class Agent(p: Player) {
     '4' -> R4(),
     '5' -> R5(),
     '6' -> R6()
-  ).withDefaultValue(Z())A
+  ).withDefaultValue(Z())
 
   def stringToLoc(s: String): Loc = {
     if(s.length != 2)
@@ -131,7 +131,11 @@ case class AI(p: Player) extends Agent(p) {
   }
 
   def getLegalMoves(s: State): List[Move] = {
+    //System.err.println("getLegalMoves s argument: " + s.toString)
+
     val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == this.p)
+
+    //System.err.println("getLegalMoves mypieces: " + mypieces.toString())
 
     var moves: List[Move] = List()
 
@@ -141,7 +145,7 @@ case class AI(p: Player) extends Agent(p) {
         moves = moves :+ stringToMove(piece, move)
       }
     }
-    moves
+    moves.distinct
   }
 
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
@@ -158,17 +162,42 @@ case class AI(p: Player) extends Agent(p) {
     val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
     val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
 
-    if (!whitePieces.contains((p: Piece) => p.isInstanceOf[King]) || !blackPieces.contains((p: Piece) => p.isInstanceOf[King]))
-      true
-    else
-      false
+    var ret1 = false
+    var ret2 = false
+    for(w <- whitePieces){
+      if (w.toString == "K")
+        ret1 = true
+      //System.err.println(w.toString)
+    }
+    for(b <- blackPieces){
+      if(b.toString == "k")
+        ret2 = true
+      //System.err.println(b.toString)
+    }
+
+    !(ret1 && ret2)
   }
 
+  //TODO: Iterative deepening -- get best move at ply 1, get best move at ply 2, etc, until out of time, use move
+          // from last full ply searched
+
+
+
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double, player: Player): Double = {
-    if (depth == 0 || isWin(s)){
+    System.err.println("alpha-beta depth: " + depth)
+    if (depth <= 0){
+      System.err.println("hit depth 0")
       player match {
-        case White() => s.w_value
-        case Black() => s.b_value
+        case White() => return s.w_value
+        case Black() => return s.b_value
+      }
+    }
+
+    if (isWin(s)){
+      System.err.println("found winning state")
+      player match {
+        case White() => return s.w_value
+        case Black() => return s.b_value
       }
     }
 
@@ -206,23 +235,31 @@ case class AI(p: Player) extends Agent(p) {
     //xxx: check ttable
 
     if (s.on_move != this.p){
+      System.err.println("Not our turn, generating noop")
       //xxx: think on opponent's time
       new Noop().toString
     }
     else{
       val sortedMoves = heuristicSort(getLegalMoves(s), s)
+      //System.err.println("Number of legal moves: " + sortedMoves.length)
+      //for (move<-sortedMoves){
+      //  System.err.println(move)
+      //}
 
       var bestMove: Move = new Noop()
-      var bestMoveVal: Double = 0.0
+      var bestMoveVal: Double = Double.NegativeInfinity
       var moveVal: Double = 0.0
 
       for (move <- sortedMoves){
+        //System.err.println("Move being considered: " + move)
         moveVal = alphaBeta(move.go(s), Params.plyDepth, Double.NegativeInfinity, Double.PositiveInfinity, s.on_move)
+        //System.err.println("value of that move: " + moveVal)
         if (moveVal > bestMoveVal){
           bestMoveVal = moveVal
           bestMove = move
         }
       }
+      //System.err.println("AI move returning: " + bestMove)
       bestMove.toString
     }
   }

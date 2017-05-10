@@ -36,7 +36,7 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
 
     val capped = s.pieces.filter((x: Piece) => x.getLoc == newLoc)
     assert(capped.length <= 1)
-    val cappedPiece = capped.head
+    val cappedPiece = capped.headOption
 
     val newq = Queen(this.p, l = newLoc)
 
@@ -48,14 +48,18 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
 
       // we've already asserted that the length is upper bounded by 1; this case represents a capture
       case _ =>
-        val nnp = np.filterNot((x: Piece) => x == cappedPiece)  // remove capped piece from the board
+        val nnp = np.filterNot((x: Piece) => cappedPiece.isDefined && x == cappedPiece.get)  // remove capped piece from the board
         if(this.p == White())
-          new State(on_move = this.p.opposite, moveNum = s.moveNum, b_value = s.b_value - cappedPiece.value,
-            w_value = s.w_value, pieces = nnp :+ newq) // update black's movenum to match this one, subtract value of
+          new State(on_move = this.p.opposite, moveNum = s.moveNum,
+            b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
+            w_value = s.w_value,
+            pieces = nnp :+ newq) // update black's movenum to match this one, subtract value of
             // capped piece from black
         else
-          new State(on_move = this.p.opposite, moveNum = s.moveNum+1, b_value = s.b_value,
-            w_value = s.w_value - cappedPiece.value, pieces = nnp :+ newq)  // update white's movenum (increment it),
+          new State(on_move = this.p.opposite, moveNum = s.moveNum+1,
+            b_value = s.b_value,
+            w_value = if(cappedPiece.isDefined) s.w_value - cappedPiece.get.value else s.w_value,
+            pieces = nnp :+ newq)  // update white's movenum (increment it),
             // and subtract value of capped piece from white
     }
   }
@@ -63,8 +67,16 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
   /** Assumes that the number to move  has been tacked on to the end of the move string as a numeric character
     * */
   def getMovLoc(m: String): Loc = {
-    val nToMov: Int = m.last.toInt
+    val nToMov: Int = m.last.toString.toInt
     val mov: String = m.init
+
+    /*
+    System.err.println("Queen")
+    System.err.println("m: " + m)
+    System.err.println("nToMov: " + nToMov)
+    System.err.println("mov: " + mov)
+    */
+
     if (!funcList.contains(mov))
       return new Loc(-1,-1)
     mov match {

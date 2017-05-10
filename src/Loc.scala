@@ -20,6 +20,10 @@ sealed class Loc(val x: Int, val y: Int) {
     }
   }
 
+  override def toString: String = {
+    x.toString + " " + y.toString
+  }
+
   def toColRow: (Col, Row) = {
     val row: Row = this.x match {
       case 0 => R1()

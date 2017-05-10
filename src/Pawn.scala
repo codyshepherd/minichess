@@ -236,6 +236,12 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     * */
   def getMovLoc(m: String): Loc = {
     val newx = this.l.x + this.p.op(1)
+
+    //System.err.println("Pawn")
+    //System.err.println("m: " + m)
+    //System.err.println("nToMov: " + nToMov)
+    //System.err.println("mov: " + mov)
+
     m match {
       case "fwd" => new Loc(x = newx, y = this.l.y)
       case "capRight" => new Loc(x = newx, y = this.l.y + 1)

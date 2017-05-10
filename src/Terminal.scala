@@ -18,14 +18,18 @@ class Terminal {
 
 
   val cmds = Map(
-    "remote" -> PartialFunction(remote)
+    "remote" -> PartialFunction(remote),
+    "exit" -> PartialFunction(leave)
   )
 
   def runtime(): Unit = {
-    while(true){
-      val lines = scala.io.StdIn.readLine().split(" ")
-      if(checkCmd(lines.head))
+    while(true) {
+      val lines = scala.io.StdIn.readLine("> ").split(" ")
+
+      if (checkCmd(lines.head))
         cmds(lines.head)(lines.tail)
+      else
+        System.out.println("Command not recognized.")
     }
   }
 
@@ -36,9 +40,35 @@ class Terminal {
     }
   }
 
+  def leave(args: Array[String]): Unit = {
+    System.exit(0)
+  }
+
   def remote(args: Array[String]): Boolean = {
     val c = new Comms()
 
-  }
+    if(args.length < 3){
+      System.out.println("Usage: remote [uname] [passwd] [color]")
+      return false
+    }
 
+    if(!c.connect(args(0), args(1))) {
+      System.out.println("Failed to connect.")
+      return false
+    }
+
+    System.out.println("Connection successful.")
+
+    c.offer(args(2).toUpperCase())
+
+    true
+  }
 }
+
+object Term {
+  def main(args: Array[String]): Unit = {
+    val t = new Terminal
+    t.runtime()
+  }
+}
+

@@ -34,7 +34,7 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
 
     val capped = s.pieces.filter((x: Piece) => x.getLoc == newLoc) // get the capped piece, if there is one
     assert(capped.length <= 1)
-    val cappedPiece = capped.head
+    val cappedPiece = capped.headOption
 
     val newq = King(this.p, l = newLoc)  // make a new piece at the ending location
 
@@ -46,26 +46,41 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
 
       // we've already asserted that the length is upper bounded by 1; this case represents a capture
       case _ =>
-        val nnp = np.filterNot((x: Piece) => x == cappedPiece)
+        val nnp = np.filterNot((x: Piece) => cappedPiece.isDefined && x == cappedPiece.get)
         if(this.p == White())
-          new State(on_move = this.p.opposite, moveNum = s.moveNum, b_value = s.b_value - cappedPiece.value,
-            w_value = s.w_value, pieces = nnp :+ newq)// update black's movenum to match this one, subtract value of
+          new State(on_move = this.p.opposite,
+            moveNum = s.moveNum,
+            b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
+            w_value = s.w_value,
+            pieces = nnp :+ newq)// update black's movenum to match this one, subtract value of
         // capped piece from black
         else
-          new State(on_move = this.p.opposite, moveNum = s.moveNum+1, b_value = s.b_value,
-            w_value = s.w_value - cappedPiece.value, pieces = nnp :+ newq)// update white's movenum (increment it),
+          new State(on_move = this.p.opposite,
+            moveNum = s.moveNum+1,
+            b_value = s.b_value,
+            w_value = if(cappedPiece.isDefined) s.w_value - cappedPiece.get.value else s.w_value,
+            pieces = nnp :+ newq)// update white's movenum (increment it),
       // and subtract value of capped piece from white
     }
   }
 
   def getMovLoc(m: String): Loc = {
-    val nToMov: Int = m.last.toInt
-    val mov: String = m.init
+
+    val nToMov: Int = 1
+    val mov: String = m
+
+    /*
+    System.err.println("King")
+    System.err.println("m: " + m)
+    System.err.println("nToMov: " + nToMov)
+    System.err.println("mov: " + mov)
+    */
+
     if (!funcList.contains(mov))
       return new Loc(-1, -1)
     mov match {
-      case "fwd" => new Loc(x = this.l.x + this.p.op(1), y = this.l.y)
-      case "bak" => new Loc(x = this.l.x - this.p.op(1), y = this.l.y)
+      case "fwd" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y)
+      case "bak" => new Loc(x = this.l.x - this.p.op(nToMov), y = this.l.y)
       case "left" => new Loc(x = this.l.x, y = this.l.y - nToMov)
       case "right" => new Loc(x = this.l.x, y = this.l.y + nToMov)
     }
@@ -77,6 +92,7 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
       return false
 
     val newLoc = getMovLoc(mv)
+    //System.err.println("King- Move: " + mv + " newLoc: " + newLoc)
 
     if (!isInBounds(newLoc))
       return false
