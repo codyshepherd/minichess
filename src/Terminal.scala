@@ -9,16 +9,17 @@
 class Terminal {
 
   // AI or human player
-  // depth of search per AI player
-
-  // name, pw
-  // offer, accept
 
   // three-digit response codes from imcs server
 
+  var uname: String = "yorick"
+  var pword: String = "infinitejest"
 
   val cmds = Map(
-    "remote" -> PartialFunction(remote),
+    "offer" -> PartialFunction(offerRemote),
+    "accept" -> PartialFunction(acceptRemote),
+    "depth" -> PartialFunction(depth),
+    "creds" -> PartialFunction(creds),
     "exit" -> PartialFunction(leave)
   )
 
@@ -40,30 +41,64 @@ class Terminal {
     }
   }
 
+  def creds(args: Array[String]): Unit = {
+    if(args.length != 2){
+      System.out.println("Usage: creds [uname] [pword] // Note: defaults are 'yorick' and 'infinitejest' //")
+      return
+    }
+    uname = args(0)
+    pword = args(1)
+  }
+
+  def depth(args: Array[String]): Unit = {
+    if(args.length != 1) {
+      System.out.println("Usage: depth [Int] // Note: default is 6 //")
+      return
+    }
+    Params.plyDepth = args(0).toInt
+  }
+
   def leave(args: Array[String]): Unit = {
     System.exit(0)
   }
 
-  def remote(args: Array[String]): Boolean = {
+  def offerRemote(args: Array[String]): Unit = {
     val c = new Comms()
 
-    if(args.length < 3){
-      System.out.println("Usage: remote [uname] [passwd] [color]")
-      return false
+    if(args.length != 1){
+      System.out.println("Usage: offer [color]")
+      return
     }
 
-    if(!c.connect(args(0), args(1))) {
+    if(!c.connect(uname, pword)) {
       System.out.println("Failed to connect.")
-      return false
+      return
     }
 
     System.out.println("Connection successful.")
 
-    c.offer(args(2).toUpperCase())
+    c.offer(args(0).toUpperCase())
+  }
 
-    true
+  def acceptRemote(args: Array[String]): Unit = {
+    val c = new Comms()
+
+    if(args.length != 1){
+      System.out.println("Usage: accept [game id]")
+      return
+    }
+
+    if(!c.connect(uname, pword)) {
+      System.out.println("Failed to connect.")
+      return
+    }
+
+    System.out.println("Connection successful.")
+
+    c.accept(args(0).toUpperCase())
   }
 }
+
 
 object Term {
   def main(args: Array[String]): Unit = {

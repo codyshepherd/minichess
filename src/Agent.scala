@@ -6,7 +6,6 @@
 /** This class represents the AI Player that makes moves and plays the game.
   * */
 sealed abstract class Agent(p: Player) {
-  //responsible for checking that a prospective move is legal
 
   //Keep track of board piece value as you go -- state.value?
 
@@ -68,28 +67,6 @@ sealed abstract class Agent(p: Player) {
 }
 
 case class AI(p: Player) extends Agent(p) {
-
-
-
-  /*
-  def isLegal(piece: Piece, mv: String, s: State): Boolean = {
-    val newLoc = piece.getMovLoc(mv)
-
-    if(newLoc == piece.getLoc)
-      return true
-
-    if(!isInBounds(newLoc))
-      return false
-
-    val thoseAtLoc = s.pieces.filter((p: Piece) => p.getLoc == newLoc)
-    assert(thoseAtLoc.length <= 1)
-    val atLoc = thoseAtLoc.head
-
-    atLoc match {}
-
-
-  }
-  */
 
   def stringToMove(p: Piece, s: String): Move = {
     val newLoc = p.getMovLoc(s)
@@ -182,9 +159,9 @@ case class AI(p: Player) extends Agent(p) {
           // from last full ply searched
 
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double, player: Player): Double = {
-    System.err.println("alpha-beta depth: " + depth)
+    //System.err.println("alpha-beta depth: " + depth)
     if (depth <= 0) {
-      System.err.println("hit depth 0. White: " + s.w_value + " Black: " + s.b_value)
+      //System.err.println("hit depth 0. White: " + s.w_value + " Black: " + s.b_value)
       player match {
         case White() => return s.w_value
         case Black() => return s.b_value
@@ -192,7 +169,7 @@ case class AI(p: Player) extends Agent(p) {
     }
 
     if (isWin(s)) {
-      System.err.println("found winning state. White: " + s.w_value + " Black: " + s.b_value)
+      //System.err.println("found winning state. White: " + s.w_value + " Black: " + s.b_value)
       player match {
         case White() => return s.w_value
         case Black() => return s.b_value
@@ -228,9 +205,6 @@ case class AI(p: Player) extends Agent(p) {
     else{
       val sortedMoves = heuristicSort(getLegalMoves(s), s)
       //System.err.println("Number of legal moves: " + sortedMoves.length)
-      //for (move<-sortedMoves){
-      //  System.err.println(move)
-      //}
 
       var bestMove: Move = new Noop()
       var bestMoveVal: Double = Double.NegativeInfinity
@@ -238,7 +212,7 @@ case class AI(p: Player) extends Agent(p) {
 
       for (move <- sortedMoves){
         //System.err.println("Move being considered: " + move)
-        moveVal = alphaBeta(move.go(s), Params.plyDepth, Double.NegativeInfinity, Double.PositiveInfinity, s.on_move)
+        moveVal = -alphaBeta(move.go(s), Params.plyDepth, Double.NegativeInfinity, Double.PositiveInfinity, s.on_move.opposite)
         //System.err.println("value of that move: " + moveVal)
         if (moveVal > bestMoveVal){
           bestMoveVal = moveVal

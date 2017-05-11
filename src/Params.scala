@@ -8,7 +8,7 @@ import scala.io.Source
 /** Static global values
   * */
 object Params {
-  val plyDepth: Int = 4
+  var plyDepth: Int = 6
 
   val cols = 5
   val rows = 6
@@ -17,7 +17,7 @@ object Params {
   val bottom = 0
 
   val leftLimit = 0
-  val rightLimit = 5
+  val rightLimit = 4
 
   val pawn = 1.0
   val knight = 3.0

@@ -24,9 +24,9 @@ abstract class Piece(p: Player, l: Loc) {
   def isLegal(mv: String, s: State): Boolean
   def legalMoves(s: State): List[String]
   def isInBounds(l:Loc): Boolean = {
-    if (l.x < Params.bottom || l.x >= Params.top)
+    if (l.x < Params.bottom || l.x > Params.top)
       false
-    else if (l.y < Params.leftLimit || l.y >= Params.rightLimit)
+    else if (l.y < Params.leftLimit || l.y > Params.rightLimit)
       false
     else
       true
