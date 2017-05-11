@@ -181,53 +181,39 @@ case class AI(p: Player) extends Agent(p) {
   //TODO: Iterative deepening -- get best move at ply 1, get best move at ply 2, etc, until out of time, use move
           // from last full ply searched
 
-
-
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double, player: Player): Double = {
     System.err.println("alpha-beta depth: " + depth)
-    if (depth <= 0){
-      System.err.println("hit depth 0")
+    if (depth <= 0) {
+      System.err.println("hit depth 0. White: " + s.w_value + " Black: " + s.b_value)
       player match {
         case White() => return s.w_value
         case Black() => return s.b_value
       }
     }
 
-    if (isWin(s)){
-      System.err.println("found winning state")
+    if (isWin(s)) {
+      System.err.println("found winning state. White: " + s.w_value + " Black: " + s.b_value)
       player match {
         case White() => return s.w_value
         case Black() => return s.b_value
       }
     }
 
-    if(player == s.on_move){
-      var v: Double = Double.NegativeInfinity
-      val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
-      val moves = (for(piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
+    var bestValue: Double = Double.NegativeInfinity
+    var tempAlpha = alpha
+    val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
+    val moves = (for (piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
 
-      for (move <- moves){
-        v = math.max(v, alphaBeta(move, depth - 1, alpha, beta, player))
-        val tempAlpha = math.max(alpha, v)
-        if (beta <= tempAlpha)
-          return v  // beta cut-off
-      }
-      v
+    var v: Double = 0.0
+
+    for (move <- moves) {
+      v = -alphaBeta(move, depth - 1, -beta, -tempAlpha, player.opposite)
+      bestValue = math.max(bestValue, v)
+      tempAlpha = math.max(tempAlpha, v)
+      if (tempAlpha >= beta)
+        return bestValue // beta cut-off
     }
-    else {
-      var v: Double = Double.PositiveInfinity
-      val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
-      val moves = (for(piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
-
-      for (move <- moves){
-        v = math.min(v, alphaBeta(move, depth - 1, alpha, beta, player))
-        val tempBeta = math.min(alpha, v)
-        if (tempBeta <= alpha)
-          return v  // beta cut-off
-      }
-      v
-    }
-
+    bestValue
   }
 
   def move(s: State): String = {
