@@ -9,6 +9,7 @@ import scala.io.Source
   * */
 object Params {
   var plyDepth: Int = 6
+  var turnTime: Int = 7
 
   val cols = 5
   val rows = 6
@@ -26,7 +27,29 @@ object Params {
   val queen = 9.0
   val king = 50.0
 
+  val blackValue:Long = scala.util.Random.nextLong()
+  val whiteValue:Long = scala.util.Random.nextLong()
+
   val startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
+
+  var ttable: Map[Long, State] = Map()
+
+  val ztable: Array[Array[Long]] = for(x <- Array.range(0,rows*cols)) yield for(y <- Array.range(0,12)) yield scala.util.Random.nextLong()
+
+  val pieceIndices: Map[String, Int] = Map(
+    "P" -> 0,
+    "N" -> 1,
+    "B" -> 2,
+    "R" -> 3,
+    "Q" -> 4,
+    "K" -> 5,
+    "p" -> 6,
+    "n" -> 7,
+    "b" -> 8,
+    "r" -> 9,
+    "q" -> 10,
+    "k" -> 11
+  )
 
   private[this] var _w_time: Int = 300
 
@@ -120,4 +143,24 @@ object Params {
     Params.stringsToState(lines.toList)
   }
 
+  def zobristHash(s: State): Long = {
+    var h:Long = 0
+    for(i <- List.range(0,rows)){
+      for(j <- List.range(0,cols)){
+        //System.err.println("i: " + i + " j: " + j)
+        val pc = s.pieces.find((p: Piece) => p.getLoc == (i,j))
+        if(pc.isDefined){
+          val ind = pieceIndices get pc.get.toString
+          //System.err.println("ind: " + ind.get)
+          if(ind.isDefined)
+            h = h ^ ztable(i*cols + j)(ind.get)
+        }
+      }
+    }
+    if(s.on_move == White())
+      h = h ^ whiteValue
+    else
+      h = h ^ blackValue
+    h
+  }
 }

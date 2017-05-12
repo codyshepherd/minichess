@@ -3,6 +3,9 @@
   * Created by cody on 4/26/17.
   */
 
+import java.time.LocalTime
+import java.time.ZoneId
+
 /** This class represents the AI Player that makes moves and plays the game.
   * */
 sealed abstract class Agent(p: Player) {
@@ -162,6 +165,8 @@ case class AI(p: Player) extends Agent(p) {
     //System.err.println("alpha-beta depth: " + depth)
     if (depth <= 0) {
       //System.err.println("hit depth 0. White: " + s.w_value + " Black: " + s.b_value)
+      val sHash = Params.zobristHash(s)
+      Params.ttable = Params.ttable + (sHash -> s)
       player match {
         case White() => return s.w_value
         case Black() => return s.b_value
@@ -170,7 +175,19 @@ case class AI(p: Player) extends Agent(p) {
 
     if (isWin(s)) {
       //System.err.println("found winning state. White: " + s.w_value + " Black: " + s.b_value)
+      //val sHash = Params.zobristHash(s)
+      //Params.ttable = Params.ttable + (sHash -> s)
       player match {
+        case White() => return s.w_value
+        case Black() => return s.b_value
+      }
+    }
+
+    //xxx: check ttable
+    val sHash = Params.zobristHash(s)
+    val tState = Params.ttable get sHash
+    if(tState.isDefined){
+      s.on_move match {
         case White() => return s.w_value
         case Black() => return s.b_value
       }
@@ -190,12 +207,13 @@ case class AI(p: Player) extends Agent(p) {
       if (tempAlpha >= beta)
         return bestValue // beta cut-off
     }
+    Params.ttable = Params.ttable + (sHash -> s)
     bestValue
   }
 
   def move(s: State): String = {
 
-    //xxx: check ttable
+    val startTime = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
 
     if (s.on_move != this.p){
       System.err.println("Not our turn, generating noop")
@@ -218,6 +236,8 @@ case class AI(p: Player) extends Agent(p) {
           bestMoveVal = moveVal
           bestMove = move
         }
+        if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - startTime > Params.turnTime)
+          return bestMove.toString
       }
       //System.err.println("AI move returning: " + bestMove)
       bestMove.toString

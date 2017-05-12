@@ -20,6 +20,8 @@ class Terminal {
     "accept" -> PartialFunction(acceptRemote),
     "depth" -> PartialFunction(depth),
     "creds" -> PartialFunction(creds),
+    "time" -> PartialFunction(time),
+    "help" -> PartialFunction(help),
     "exit" -> PartialFunction(leave)
   )
 
@@ -39,6 +41,20 @@ class Terminal {
       case Some(a) => true
       case None => false
     }
+  }
+
+  def help(args: Array[String]): Unit = {
+    System.out.println("Available commands: ")
+    for(k <- cmds.keys)
+      System.out.println(k)
+  }
+
+  def time(args: Array[String]): Unit = {
+    if(args.length != 1){
+      System.out.println("Usage: time [#seconds] // Note: default is 7 //")
+      return
+    }
+    Params.turnTime = args(0).toInt
   }
 
   def creds(args: Array[String]): Unit = {
