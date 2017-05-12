@@ -203,7 +203,7 @@ case class AI(p: Player) extends Agent(p) {
       new Noop().toString
     }
     else{
-      val sortedMoves = heuristicSort(getLegalMoves(s), s)
+      val sortedMoves = heuristicSort(scala.util.Random.shuffle(getLegalMoves(s)), s)
       //System.err.println("Number of legal moves: " + sortedMoves.length)
 
       var bestMove: Move = new Noop()
