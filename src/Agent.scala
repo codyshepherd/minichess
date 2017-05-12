@@ -165,11 +165,16 @@ case class AI(p: Player) extends Agent(p) {
     //System.err.println("alpha-beta depth: " + depth)
     if (depth <= 0) {
       //System.err.println("hit depth 0. White: " + s.w_value + " Black: " + s.b_value)
-      val sHash = Params.zobristHash(s)
-      Params.ttable = Params.ttable + (sHash -> s)
+      //val sHash = Params.zobristHash(s)
       player match {
-        case White() => return s.w_value
-        case Black() => return s.b_value
+        case White() =>{
+          //Params.ttable = Params.ttable + (sHash -> new Tpos(s,s.w_value, Params.plyDepth, Exact()))
+          return s.w_value
+        }
+        case Black() => {
+          //Params.ttable = Params.ttable + (sHash -> new Tpos(s,s.b_value, Params.plyDepth, Exact()))
+          return s.b_value
+        }
       }
     }
 
@@ -184,30 +189,49 @@ case class AI(p: Player) extends Agent(p) {
     }
 
     //xxx: check ttable
-    val sHash = Params.zobristHash(s)
-    val tState = Params.ttable get sHash
-    if(tState.isDefined){
-      s.on_move match {
-        case White() => return s.w_value
-        case Black() => return s.b_value
-      }
-    }
+    var sHash: Long = 0
 
     var bestValue: Double = Double.NegativeInfinity
     var tempAlpha = alpha
+    var tempBeta = beta
     val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
     val moves = (for (piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
 
     var v: Double = 0.0
+    var bestMove: State = moves.head
 
     for (move <- moves) {
-      v = -alphaBeta(move, depth - 1, -beta, -tempAlpha, player.opposite)
+      sHash = Params.zobristHash(move, Params.plyDepth-depth)
+      val tPos = Params.ttable get sHash
+      if(tPos.isDefined){
+        if(tPos.get.t == Exact())
+          return tPos.get.score
+        else if (tPos.get.t == Lower())
+          tempAlpha = math.max(tempAlpha, tPos.get.score)
+        else if (tPos.get.t == Upper())
+          tempBeta = math.min(tempBeta, tPos.get.score)
+        if(tempAlpha >= tempBeta)
+          return tPos.get.score
+      }
+
+      v = -alphaBeta(move, depth - 1, -tempBeta, -tempAlpha, player.opposite)
+      if (v > bestValue)
+        bestMove = move
       bestValue = math.max(bestValue, v)
       tempAlpha = math.max(tempAlpha, v)
-      if (tempAlpha >= beta)
+      if (tempAlpha >= tempBeta)
         return bestValue // beta cut-off
     }
-    Params.ttable = Params.ttable + (sHash -> s)
+
+    var ttFlag: NodeType = Exact()
+    if(bestValue <= alpha)
+      ttFlag = Upper()
+    else if (bestValue >= beta)
+      ttFlag = Lower()
+    else
+      ttFlag = Exact()
+    Params.ttable = Params.ttable + (sHash -> new Tpos(bestMove, bestValue, Params.plyDepth-depth, ttFlag))
+
     bestValue
   }
 

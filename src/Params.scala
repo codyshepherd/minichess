@@ -32,7 +32,7 @@ object Params {
 
   val startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
 
-  var ttable: Map[Long, State] = Map()
+  var ttable: Map[Long, Tpos] = Map()
 
   val ztable: Array[Array[Long]] = for(x <- Array.range(0,rows*cols)) yield for(y <- Array.range(0,12)) yield scala.util.Random.nextLong()
 
@@ -143,7 +143,7 @@ object Params {
     Params.stringsToState(lines.toList)
   }
 
-  def zobristHash(s: State): Long = {
+  def zobristHash(s: State, depth: Int): Long = {
     var h:Long = 0
     for(i <- List.range(0,rows)){
       for(j <- List.range(0,cols)){
@@ -158,9 +158,9 @@ object Params {
       }
     }
     if(s.on_move == White())
-      h = h ^ whiteValue
+      h = h ^ whiteValue ^ depth
     else
-      h = h ^ blackValue
+      h = h ^ blackValue ^ depth
     h
   }
 }
