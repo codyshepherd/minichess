@@ -131,10 +131,31 @@ case class AI(p: Player) extends Agent(p) {
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
     val zipped = mvs zip (for (move <- mvs) yield move.go(s))
 
+    var list: List[Move] = List()
+
     s.on_move match {
-      case White() => (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.w_value > e2._2.w_value)) yield tup._1).toList
-      case Black() => (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.b_value > e2._2.b_value)) yield tup._1).toList
+      case White() => {
+        list = (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.w_value > e2._2.w_value)) yield tup._1).toList
+        val altlist = list
+        for(move <- altlist){
+          if(!move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[King] && p.getPlayer == Black())
+          || !move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[Queen] && p.getPlayer == Black()))
+            list = move :: list.filterNot((m: Move) => m == move)
+        }
+        list
+      }
+      case Black() => {
+        list = (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.b_value > e2._2.b_value)) yield tup._1).toList
+        val altlist = list
+        for(move <- altlist){
+          if(!move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[King] && p.getPlayer == White())
+            || !move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[Queen] && p.getPlayer == White()))
+            list = move :: list.filterNot((m: Move) => m == move)
+        }
+        list
+      }
     }
+
 
   }
 

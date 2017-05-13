@@ -67,7 +67,12 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
 
   def getMovLoc(m: String): Loc = {
     val nToMov: Int = m.last.toString.toInt
-    val mov: String = m.init
+    var mov: String = ""
+
+    if(altFuncList.contains(m))
+      mov = m
+    else
+      mov = m.init
 
     /*
     System.err.println("Bishop")
