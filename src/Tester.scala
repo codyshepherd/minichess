@@ -6,7 +6,9 @@
   * */
 class Tester {
 
-  val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
+  //val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
+  val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
+  //val path = "~/IdeaProjects/minchess/src/butt/"
 
   val startPieces: List[Piece] = {
     List(
@@ -84,14 +86,18 @@ class Tester {
 
     val mvs = k1.legalMoves(w0)
     assert(mvs.isEmpty)
+
+    assert(w0.pieces.exists((p: Piece) => p.isInstanceOf[King]))
+    assert(!w0.pieces.filterNot((p: Piece) => p.isInstanceOf[King]).exists((p: Piece) => p.isInstanceOf[King]))
   }
 
   def testKnight(): Unit = {
     val w0 = Params.stateFromFile(path ++ "pawnfwd.txt")
 
-    val n1 = w0.pieces.filter((p: Piece) => p.getLoc == (0,1) && p.getPlayer==w0.on_move).head
+    val n1 = w0.pieces.filter((p: Piece) => p.isInstanceOf[Knight] && p.getPlayer==w0.on_move).head
 
     val mvs = n1.legalMoves(w0)
+    System.err.println(mvs)
     assert(mvs == List("longLeft1", "longRight1", "shortLeft2", "shortRight4"))
 
   }

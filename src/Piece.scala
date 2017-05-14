@@ -31,4 +31,46 @@ abstract class Piece(p: Player, l: Loc) {
     else
       true
   }
+
+  def isPathClear(l: Loc, s: State): Boolean = {
+    if(this.l.x == l.x && this.l.y == l.y)
+      true
+    else if(this.l.x == l.x){
+      for(i <- List.range(math.min(this.l.y, l.y)+1,math.max(this.l.y, l.y))){
+        if(s.pieces.contains((p: Piece) => p.getLoc == (this.l.x, i)))
+          return false
+      }
+      true
+    }
+    else if(this.l.y == l.y){
+      for(i <- List.range(math.min(this.l.x, l.x)+1,math.max(this.l.x, l.x))){
+        if(s.pieces.contains((p: Piece) => p.getLoc == (i, this.l.y)))
+          return false
+      }
+      true
+    }
+  else{
+    val ydiff = l.y - this.l.y
+    val xdiff = l.x - this.l.x
+
+    val cols = ydiff match {
+      case yd if yd == 0 => List.fill(math.abs(xdiff))(l.y)
+      case yd if yd > 0 => List.range(this.l.y+1, l.y)
+      case yd if yd < 0 => List.range(l.y+1, this.l.y)
+    }
+
+    val rows = xdiff match {
+      case xd if xd == 0 => List.fill(math.abs(ydiff))(l.x)
+      case xd if xd > 0 => List.range(this.l.x+1, l.x)
+      case xd if xd < 0 => List.range(l.x+1, this.l.x)
+    }
+
+    val path = rows zip cols
+
+    for(step <- path)
+      if(s.pieces.contains((p: Piece) => p.getLoc.x == step._1 && p.getLoc.y == step._2))
+        return false
+    }
+    true
+  }
 }

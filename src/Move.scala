@@ -48,7 +48,7 @@ case class Z() extends Row {
   override def toString: String = "7"
 }
 
-class Move (p: Piece, mv: String, from: (Col, Row), to: (Col, Row)) {
+class Move (val p: Piece, val mv: String, val from: (Col, Row), val to: (Col, Row)) {
 
   override def toString: String = {
     from._1.toString + from._2.toString + "-" + to._1.toString + to._2.toString

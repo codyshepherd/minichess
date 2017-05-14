@@ -92,6 +92,8 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
     }
   }
 
+
+
   def isLegal(mv: String, s: State): Boolean = {
     val move = mv.init
     if (!funcList.contains(move))
@@ -99,7 +101,7 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
 
     val newLoc = getMovLoc(mv)
 
-    if (!isInBounds(newLoc))
+    if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
       return false
 
     val ydiff = newLoc.y - this.l.y

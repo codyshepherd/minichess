@@ -24,6 +24,8 @@ case class Knight(p: Player, l: Loc) extends Piece(p,l){
     }
   }
 
+  override def isPathClear(l: Loc, s: State): Boolean = true
+
   /** Assumes the move has already been deemed legal.
     *
     *
@@ -131,7 +133,7 @@ case class Knight(p: Player, l: Loc) extends Piece(p,l){
       for (i <- List.range(1,5)){       // every knight move takes a number between 1 and 4 (inclusive) as argument
         val mv = move + i.toString
         if (isLegal(mv, s))
-          moves = moves :+ mv
+          moves = mv :: moves
       }
     }
     moves.distinct

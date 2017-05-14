@@ -103,7 +103,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
 
     val newLoc = getMovLoc(mv)
 
-    if (!isInBounds(newLoc))
+    if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
       return false
 
     val ydiff = newLoc.y - this.l.y

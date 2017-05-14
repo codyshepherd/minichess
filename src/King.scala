@@ -112,7 +112,7 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
     var moves: List[String] = List()
     for(move <- funcList){
       if(isLegal(move,s))
-        moves = moves :+ move
+        moves = move:: moves
     }
     moves
   }
