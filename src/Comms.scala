@@ -114,8 +114,10 @@ class Comms {
   def play(p: Player): Unit = {
     System.err.println("Player: " + p.toString)
     val player = AI(p)
+    val thinker = AI(p.opposite)
 
     var move = ""
+    var throwaway = ""
     var recvd = ""
 
     try {
@@ -160,6 +162,10 @@ class Comms {
         return
       out.println(move)
       out.flush()
+
+      val newstate = Params.cachedBestMove.go(state.get)
+      if(Params.think)
+        throwaway = thinker.move(newstate)
 
       try {
         System.out.println(in.next() + "(dumped 5)")    // opponent move

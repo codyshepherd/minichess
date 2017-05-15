@@ -11,9 +11,14 @@ object Params {
   var path: String = "C:/Users/codys/IdeaProjects/minichess/src/"
 
   var mobility: Boolean = false
+  var isTtableOn: Boolean = true
+  var think: Boolean = false
 
   var plyDepth: Int = 6
   var turnTime: Int = 7
+  var startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
+  var cachedBestMove: Move = new Noop()
+  var cachedBestMoveVal: Double = 0.0
 
   val cols = 5
   val rows = 6
@@ -41,8 +46,6 @@ object Params {
 
   var ttable: scala.collection.mutable.Map[Long, Tpos] = scala.collection.mutable.Map()
 
-  val ztable: Array[Array[Long]] = for(x <- Array.range(0,rows*cols)) yield for(y <- Array.range(0,12)) yield scala.util.Random.nextLong()
-
   val pieceIndices: Map[String, Int] = Map(
     "P" -> 0,
     "N" -> 1,
@@ -55,8 +58,21 @@ object Params {
     "b" -> 8,
     "r" -> 9,
     "q" -> 10,
-    "k" -> 11
+    "k" -> 11,
+    "0" -> 12,
+    "1" -> 13,
+    "2" -> 14,
+    "3" -> 15,
+    "4" -> 16,
+    "5" -> 17,
+    "6" -> 18,
+    "7" -> 19,
+    "8" -> 20,
+    "9" -> 21
   )
+
+  val ztable: Array[Array[Long]] = for(x <- Array.range(0,(rows+1)*cols)) yield for(y <- Array.range(0,pieceIndices.keys.size)) yield scala.util.Random.nextLong()
+  //val ztable: Array[Long] = for(x <- Array.range(0,(rows*2)*cols)) yield scala.util.Random.nextLong()
 
   def computeVals(l: List[Piece]): (Double, Double) = {
     var white = 0.0
@@ -177,8 +193,24 @@ object Params {
     new Move(p, s, (fromRow, fromCol), (toRow, toCol))
   }
 
+  /*
+  def zobristHash(s: State, depth: Int): Long = {
+    var h: Long = 0
+    var i = -1
+    for(c <- s.toString) {
+      i += 1
+      h = h ^ c.toLong ^ ztable(i)
+    }
+    System.err.println("Hash key: " + h)
+    h
+  }
+  */
+
   def zobristHash(s: State, depth: Int): Long = {
     var h:Long = 0
+    val sorted = s.pieces.sortBy(p => (p.getLoc.x, p.getLoc.y))
+
+    /*
     for(i <- List.range(0,rows)){
       for(j <- List.range(0,cols)){
         //System.err.println("i: " + i + " j: " + j)
@@ -191,10 +223,19 @@ object Params {
         }
       }
     }
+    */
+    for(piece <- sorted) {
+      val ind = pieceIndices get piece.toString
+      if(ind.isDefined)
+        h = h ^ ztable(piece.getLoc.x*cols + piece.getLoc.y)(ind.get)
+    }
+
     if(s.on_move == White())
-      h = h ^ whiteValue ^ depth
+      //h = h ^ whiteValue ^ depth
+      h = h ^ whiteValue ^ s.moveNum //^ depth
     else
-      h = h ^ blackValue ^ depth
+      //h = h ^ blackValue ^ depth
+      h = h ^ blackValue ^ s.moveNum //^ depth
     h
   }
 }

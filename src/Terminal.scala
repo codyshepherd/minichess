@@ -26,6 +26,8 @@ class Terminal {
     "help" -> PartialFunction(help),
     "mob" -> PartialFunction(mob),
     "eval" -> PartialFunction(eval),
+    "ttable" -> PartialFunction(ttable),
+    "think" -> PartialFunction(thinkDo),
     "exit" -> PartialFunction(leave)
   )
 
@@ -47,6 +49,18 @@ class Terminal {
     }
   }
 
+  def thinkDo(args: Array[String]): Unit = {
+    if(args.length != 1 || !args.exists((s: String) => s.toLowerCase == "y" || s.toLowerCase() == "n")){
+      System.out.println("Usage: think [y/n] // Note: default is 'n' //")
+      return
+    }
+
+    if(args(0) == "y")
+      Params.think = true
+    else
+      Params.think = false
+  }
+
   def eval(args: Array[String]): Unit = {
     if(args.length != 1){
       System.out.println("Usage: eval [filename]")
@@ -56,7 +70,18 @@ class Terminal {
     val state = Params.stateFromFile(Params.path + args(0))
     val player = AI(state.on_move)
     System.out.println(player.move(state))
+  }
 
+  def ttable(args: Array[String]): Unit = {
+    if(args.length != 1 || !args.exists((s: String) => s.toLowerCase == "y" || s.toLowerCase() == "n")){
+      System.out.println("Usage: ttable [y/n] // Note: default is 'y' //")
+      return
+    }
+
+    if(args(0) == "y")
+      Params.isTtableOn = true
+    else
+      Params.isTtableOn = false
   }
 
   def mob(args: Array[String]): Unit = {
@@ -65,10 +90,14 @@ class Terminal {
       return
     }
 
-    if(args(0) == "y")
+    if(args(0) == "y") {
       Params.mobility = true
-    else
+      Params.ttable.clear()
+    }
+    else {
       Params.mobility = false
+      Params.ttable.clear()
+    }
   }
 
   def help(args: Array[String]): Unit = {
