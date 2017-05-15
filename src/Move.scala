@@ -48,10 +48,10 @@ case class Z() extends Row {
   override def toString: String = "7"
 }
 
-class Move (val p: Piece, val mv: String, val from: (Col, Row), val to: (Col, Row)) {
+class Move (val p: Piece, val mv: String, val from: (Row, Col), val to: (Row, Col)) {
 
   override def toString: String = {
-    from._1.toString + from._2.toString + "-" + to._1.toString + to._2.toString
+    from._2.toString + from._1.toString + "-" + to._2.toString + to._1.toString
   }
 
   def go(s: State): State = {
@@ -61,8 +61,8 @@ class Move (val p: Piece, val mv: String, val from: (Col, Row), val to: (Col, Ro
 }
 class Noop (p: Piece = Pawn(White(), new Loc(-1,-1)),
             mv: String = "Noop",
-            from: (Col, Row) = (X(), Z()),
-            to: (Col, Row) = (X(), Z()))
+            from: (Row, Col) = (Z(), X()),
+            to: (Row, Col) = (Z(), X()))
   extends Move(p, mv,from, to){
 
   override def go(s: State): State = {

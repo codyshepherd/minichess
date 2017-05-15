@@ -8,7 +8,10 @@
   * ttable functionality.
   * */
 class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
-  //XXX: Potentially add other fields in support of heuristic evaluation
+
+  lazy val legalMoves: List[Move] = scala.util.Random.shuffle(Params.getLegalMoves(this))
+
+  lazy val value: Double = heuristicValue
 
   override def toString: String = {
     var str = ""
@@ -33,6 +36,22 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
 
     str
 
+  }
+
+  def heuristicValue: Double = {
+    lazy val l = this.legalMoves.length
+    if(Params.mobility) {
+      if (on_move == White())
+        (w_value - b_value) * Params.mvWeight + l * Params.mbWeight
+      else
+        (b_value - w_value) * Params.mvWeight + l * Params.mbWeight
+    }
+    else{
+      if(on_move == White())
+        w_value - b_value
+      else
+        b_value - w_value
+    }
   }
 
   /** The purpose of this method is probably obvious.

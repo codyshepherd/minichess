@@ -42,7 +42,7 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
 
       // no items found means no capture to worry about; just add the new queen back at the new location
       case 0 =>
-        new State(on_move = this.p.opposite, moveNum = if(this.p == Black()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value, pieces = np :+ newq)
+        new State(on_move = this.p.opposite, moveNum = if(this.p == Black()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value, pieces = newq :: np )
 
       // we've already asserted that the length is upper bounded by 1; this case represents a capture
       case _ =>
@@ -52,14 +52,14 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
             moveNum = s.moveNum,
             b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
             w_value = s.w_value,
-            pieces = nnp :+ newq)// update black's movenum to match this one, subtract value of
+            pieces = newq :: nnp)// update black's movenum to match this one, subtract value of
         // capped piece from black
         else
           new State(on_move = this.p.opposite,
             moveNum = s.moveNum+1,
             b_value = s.b_value,
             w_value = if(cappedPiece.isDefined) s.w_value - cappedPiece.get.value else s.w_value,
-            pieces = nnp :+ newq)// update white's movenum (increment it),
+            pieces = newq :: nnp)// update white's movenum (increment it),
       // and subtract value of capped piece from white
     }
   }

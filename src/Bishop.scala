@@ -43,7 +43,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
 
       // no items found means no capture to worry about; just add the new queen back at the new location
       case 0 =>
-        new State(on_move = this.p.opposite, moveNum = if(this.p == Black()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value, pieces = np :+ newq)
+        new State(on_move = this.p.opposite, moveNum = if(this.p == Black()) s.moveNum+1 else s.moveNum, b_value = s.b_value, w_value = s.w_value, pieces = newq :: np)
 
       // we've already asserted that the length is upper bounded by 1; this case represents a capture
       case _ =>
@@ -53,14 +53,14 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
             moveNum = s.moveNum,
             b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
             w_value = s.w_value,
-            pieces = nnp :+ newq)// update black's movenum to match this one, subtract value of
+            pieces = newq :: nnp )// update black's movenum to match this one, subtract value of
             // capped piece from black
         else
           new State(on_move = this.p.opposite,
             moveNum = s.moveNum+1,
             b_value = s.b_value,
             w_value = if(cappedPiece.isDefined) s.w_value - cappedPiece.get.value else s.w_value,
-            pieces = nnp :+ newq)// update white's movenum (increment it),
+            pieces = newq :: nnp)// update white's movenum (increment it),
             // and subtract value of capped piece from white
     }
   }
@@ -106,27 +106,28 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
     if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
       return false
 
-    val ydiff = newLoc.y - this.l.y
-    val xdiff = newLoc.x - this.l.x
+    /*
+    val ydiff = l.y - this.l.y
+    val xdiff = l.x - this.l.x
 
     val cols = ydiff match {
-      case yd if yd == 0 => List.fill(math.abs(xdiff))(newLoc.y)
-      case yd if yd > 0 => List.range(this.l.y+1, newLoc.y)
-      case yd if yd < 0 => List.range(newLoc.y+1, this.l.y)
+      case yd if yd == 0 => List.fill(math.abs(xdiff-1))(l.y)
+      case yd if yd > 0 => List.range(this.l.y+1, l.y)
+      case yd if yd < 0 => List.range(this.l.y-1, l.y, -1)
     }
 
     val rows = xdiff match {
-      case xd if xd == 0 => List.fill(math.abs(ydiff))(newLoc.x)
-      case xd if xd > 0 => List.range(this.l.x+1, newLoc.x)
-      case xd if xd < 0 => List.range(newLoc.x+1, this.l.x)
+      case xd if xd == 0 => List.fill(math.abs(ydiff-1))(l.x)
+      case xd if xd > 0 => List.range(this.l.x+1, l.x)
+      case xd if xd < 0 => List.range(this.l.x-1, l.x, -1)
     }
 
     val path = rows zip cols
 
-    for(location <- path){
-      if (s.pieces.exists((p: Piece) => p.getLoc == new Loc(location._1, location._2)))
+    for(step <- path)
+      if(s.pieces.contains((p: Piece) => p.getLoc.x == step._1 && p.getLoc.y == step._2))
         return false
-    }
+    */
 
     val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
     maybePiece match {
@@ -149,7 +150,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
       if (!isLegal(move, s))
         return moves
       else
-        moves = moves :+ move
+        moves = move :: moves
     }
     moves
   }
@@ -159,7 +160,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
     for(move <- funcList) {
       if(altFuncList.contains(move)){
         if(isLegal(move, s))
-          moves = moves :+ move
+          moves = move :: moves
       }
       else
         moves = moves ++ movesWhilePathClear(move, s)

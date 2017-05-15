@@ -83,14 +83,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // add back the queen, modifying this player's value
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value, pieces = newq :: np)
         }
         else {
           // not promoted, make a pawn
           val newp = Pawn(p = this.p, l = newLoc)
           // add back the pawn, no change to the value of either state
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value, pieces = newp :: np)
         }
 
       case White() =>
@@ -100,14 +100,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // return new state, adding the queen and modifying this player's value
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value + addMe, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value + addMe, pieces = newq :: np )
         }
         else {
           // if not promoted, make a pawn
           val newp = Pawn(p = this.p, l = newLoc)
           // add back the pawn, no change to value of either side
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value, pieces = newp :: np)
         }
     }
   }
@@ -142,14 +142,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // return the new state, modifying the values for both sides
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = newq :: np)
         }
         else {
           // not promoted, so just make a pawn with the new location
           val newp = Pawn(p = this.p, l = newLoc)
           // return the new state, modifying only the opponent's value
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = newp :: np)
         }
 
       case White() =>
@@ -159,14 +159,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // return the new state, modifying the values for both sides
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = newq :: np)
         }
         else {
           // if not promoted, make a pawn
           val newp = Pawn(p = this.p, l = newLoc)
           // add back the pawn, modify just the opponent' value
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = newp :: np)
         }
     }
   }
@@ -199,14 +199,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // return the new state, modifying the values for both sides
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = newq :: np)
         }
         else {
           // not promoted, so just make a pawn with the new location
           val newp = Pawn(p = this.p, l = newLoc)
           // return the new state, modifying only the opponent's value
           // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = newp :: np)
         }
 
       case White() =>
@@ -216,14 +216,14 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
           val newq = Queen(this.p, l = newLoc)
           // return the new state, modifying the values for both sides
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = np :+ newq)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = newq :: np)
         }
         else {
           // if not promoted, make a pawn
           val newp = Pawn(p = this.p, l = newLoc)
           // add back the pawn, modify just the opponent' value
           // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = np :+ newp)
+          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = newp :: np)
         }
     }
 
@@ -283,7 +283,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     var moves: List[String] = List()
     for(move <- funcList){
       if(isLegal(move,s))
-        moves = moves :+ move
+        moves = move :: moves
     }
     moves
   }

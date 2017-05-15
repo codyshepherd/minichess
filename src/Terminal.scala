@@ -1,3 +1,5 @@
+import sun.font.TrueTypeFont
+
 /**
   * Created by cody on 4/26/17.
   */
@@ -22,6 +24,8 @@ class Terminal {
     "creds" -> PartialFunction(creds),
     "time" -> PartialFunction(time),
     "help" -> PartialFunction(help),
+    "mob" -> PartialFunction(mob),
+    "eval" -> PartialFunction(eval),
     "exit" -> PartialFunction(leave)
   )
 
@@ -41,6 +45,30 @@ class Terminal {
       case Some(a) => true
       case None => false
     }
+  }
+
+  def eval(args: Array[String]): Unit = {
+    if(args.length != 1){
+      System.out.println("Usage: eval [filename]")
+      return
+    }
+
+    val state = Params.stateFromFile(Params.path + args(0))
+    val player = AI(state.on_move)
+    System.out.println(player.move(state))
+
+  }
+
+  def mob(args: Array[String]): Unit = {
+    if(args.length != 1 || !args.exists((s: String) => s.toLowerCase == "y" || s.toLowerCase() == "n")){
+      System.out.println("Usage: mob [y/n] // Note: default is 'n' //")
+      return
+    }
+
+    if(args(0) == "y")
+      Params.mobility = true
+    else
+      Params.mobility = false
   }
 
   def help(args: Array[String]): Unit = {

@@ -8,6 +8,10 @@ import scala.io.Source
 /** Static global values
   * */
 object Params {
+  var path: String = "C:/Users/codys/IdeaProjects/minichess/src/"
+
+  var mobility: Boolean = false
+
   var plyDepth: Int = 6
   var turnTime: Int = 7
 
@@ -27,12 +31,15 @@ object Params {
   val queen = 9.0
   val king = 50.0
 
+  val mvWeight = 0.8
+  val mbWeight = 0.2
+
+  assert(mvWeight + mbWeight == 1.0)
+
   val blackValue:Long = scala.util.Random.nextLong()
   val whiteValue:Long = scala.util.Random.nextLong()
 
-  val startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
-
-  var ttable: Map[Long, Tpos] = Map()
+  var ttable: scala.collection.mutable.Map[Long, Tpos] = scala.collection.mutable.Map()
 
   val ztable: Array[Array[Long]] = for(x <- Array.range(0,rows*cols)) yield for(y <- Array.range(0,12)) yield scala.util.Random.nextLong()
 
@@ -51,22 +58,6 @@ object Params {
     "k" -> 11
   )
 
-  private[this] var _w_time: Int = 300
-
-  def w_time: Int = _w_time
-
-  def w_time_=(value: Int): Unit = {
-    _w_time = value
-  }
-
-  private[this] var _b_time: Int = 300
-
-  def b_time: Int = _b_time
-
-  def b_time_=(value: Int): Unit = {
-    _b_time = value
-  }
-
   def computeVals(l: List[Piece]): (Double, Double) = {
     var white = 0.0
     var black = 0.0
@@ -80,20 +71,6 @@ object Params {
     (black, white)
   }
 
-  def bOutOfTime : Boolean = {
-    if(b_time <= 0)
-      true
-    else
-      false
-  }
-
-  def wOutOfTime : Boolean = {
-    if(w_time <= 0)
-      true
-    else
-      false
-  }
-
   def stringsToState(s: List[String]): State = {
     var i = Params.top
     var j = 0
@@ -105,18 +82,18 @@ object Params {
       j = 0
       for(item <- row){
         item match {
-          case 'k' => ps = ps :+ King(Black(), new Loc(i, j))
-          case 'K' => ps = ps :+ King(White(), new Loc(i, j))
-          case 'q' => ps = ps :+ Queen(Black(), new Loc(i, j))
-          case 'Q' => ps = ps :+ Queen(White(), new Loc(i, j))
-          case 'b' => ps = ps :+ Bishop(Black(), new Loc(i, j))
-          case 'B' => ps = ps :+ Bishop(White(), new Loc(i, j))
-          case 'n' => ps = ps :+ Knight(Black(), new Loc(i, j))
-          case 'N' => ps = ps :+ Knight(White(), new Loc(i, j))
-          case 'r' => ps = ps :+ Rook(Black(), new Loc(i, j))
-          case 'R' => ps = ps :+ Rook(White(), new Loc(i, j))
-          case 'p' => ps = ps :+ Pawn(Black(), new Loc(i, j))
-          case 'P' => ps = ps :+ Pawn(White(), new Loc(i, j))
+          case 'k' => ps = King(Black(), new Loc(i, j)) :: ps
+          case 'K' => ps = King(White(), new Loc(i, j)) :: ps
+          case 'q' => ps = Queen(Black(), new Loc(i, j)) :: ps
+          case 'Q' => ps = Queen(White(), new Loc(i, j)) :: ps
+          case 'b' => ps = Bishop(Black(), new Loc(i, j)) :: ps
+          case 'B' => ps = Bishop(White(), new Loc(i, j)) :: ps
+          case 'n' => ps = Knight(Black(), new Loc(i, j)) :: ps
+          case 'N' => ps = Knight(White(), new Loc(i, j)) :: ps
+          case 'r' => ps = Rook(Black(), new Loc(i, j)) :: ps
+          case 'R' => ps = Rook(White(), new Loc(i, j)) :: ps
+          case 'p' => ps = Pawn(Black(), new Loc(i, j)) :: ps
+          case 'P' => ps = Pawn(White(), new Loc(i, j)) :: ps
           case _ =>
         }
         j += 1
@@ -141,6 +118,63 @@ object Params {
     val lines: Iterator[String] = Source.fromFile(file).getLines()
 
     Params.stringsToState(lines.toList)
+  }
+
+  def getLegalMoves(s: State): List[Move] = {
+    //System.err.println("getLegalMoves s argument: " + s.toString)
+
+    val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == s.on_move)
+
+    //System.err.println("getLegalMoves mypieces: " + mypieces.toString())
+
+    var moves: List[Move] = List()
+
+    for (piece <- mypieces){
+      val pieceMoves = piece.legalMoves(s)
+      for(move <- pieceMoves){
+        moves = stringToMove(piece, move) :: moves
+      }
+    }
+    moves.distinct
+  }
+
+  def stringToMove(p: Piece, s: String): Move = {
+    val newLoc = p.getMovLoc(s)
+    val fromRow: Row = p.getLoc.x match {
+      case 0 => R1()
+      case 1 => R2()
+      case 2 => R3()
+      case 3 => R4()
+      case 4 => R5()
+      case 5 => R6()
+      case _ => Z()
+    }
+    val fromCol: Col = p.getLoc.y match {
+      case 0 => A()
+      case 1 => B()
+      case 2 => C()
+      case 3 => D()
+      case 4 => E()
+      case _ => X()
+    }
+    val toRow: Row = newLoc.x match {
+      case 0 => R1()
+      case 1 => R2()
+      case 2 => R3()
+      case 3 => R4()
+      case 4 => R5()
+      case 5 => R6()
+      case _ => Z()
+    }
+    val toCol: Col = newLoc.y match {
+      case 0 => A()
+      case 1 => B()
+      case 2 => C()
+      case 3 => D()
+      case 4 => E()
+      case _ => X()
+    }
+    new Move(p, s, (fromRow, fromCol), (toRow, toCol))
   }
 
   def zobristHash(s: State, depth: Int): Long = {

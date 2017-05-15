@@ -76,7 +76,11 @@ class Tester {
   }
 
   def testQueen(): Unit = {
+    val w0 = Params.stateFromFile(path ++ "queentest.txt")
 
+    val q1 = w0.pieces.filter((p: Piece) => p.getLoc == (5,1) && p.getPlayer == Black()).head
+
+    assert(!q1.isLegal("fwd5", w0))
   }
 
   def testKing(): Unit = {
@@ -98,7 +102,7 @@ class Tester {
 
     val mvs = n1.legalMoves(w0)
     System.err.println(mvs)
-    assert(mvs == List("longLeft1", "longRight1", "shortLeft2", "shortRight4"))
+    assert(mvs.toSet == Set("longLeft1", "longRight1", "shortLeft2", "shortRight4"))
 
   }
 
@@ -107,6 +111,7 @@ class Tester {
     testPawn()
     testKnight()
     testKing()
+    testQueen()
   }
 
 }
