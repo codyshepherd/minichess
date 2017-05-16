@@ -32,6 +32,25 @@ abstract class Piece(p: Player, l: Loc) {
       true
   }
 
+  def range(mv: String, s: State): Int = {
+    for(i <- List.range(1,7)){
+      val newLoc = this.getMovLoc(mv + i)
+
+      if(!isInBounds(newLoc))
+        return i-1
+
+      val found = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+
+      if (found.isDefined) {
+        if (found.get.getPlayer == this.p)
+          return i - 1
+        else
+          return i
+      }
+    }
+    0
+  }
+
   def isPathClear(l: Loc, s: State): Boolean = {
     if (this.l.x == l.x && this.l.y == l.y) {
       true

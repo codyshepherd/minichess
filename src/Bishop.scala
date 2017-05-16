@@ -1,3 +1,5 @@
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by cody on 4/26/17.
   */
@@ -106,29 +108,6 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
     if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
       return false
 
-    /*
-    val ydiff = l.y - this.l.y
-    val xdiff = l.x - this.l.x
-
-    val cols = ydiff match {
-      case yd if yd == 0 => List.fill(math.abs(xdiff-1))(l.y)
-      case yd if yd > 0 => List.range(this.l.y+1, l.y)
-      case yd if yd < 0 => List.range(this.l.y-1, l.y, -1)
-    }
-
-    val rows = xdiff match {
-      case xd if xd == 0 => List.fill(math.abs(ydiff-1))(l.x)
-      case xd if xd > 0 => List.range(this.l.x+1, l.x)
-      case xd if xd < 0 => List.range(this.l.x-1, l.x, -1)
-    }
-
-    val path = rows zip cols
-
-    for(step <- path)
-      if(s.pieces.contains((p: Piece) => p.getLoc.x == step._1 && p.getLoc.y == step._2))
-        return false
-    */
-
     val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
     maybePiece match {
       case Some(a) => if(altFuncList.contains(mv)){   // if there is a piece there and Bishop is doing non-capping move, say no
@@ -156,15 +135,20 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
   }
 
   def legalMoves(s: State): List[String] = {
-    var moves: List[String] = List()
+    var moves: ListBuffer[String] = ListBuffer()
     for(move <- funcList) {
       if(altFuncList.contains(move)){
         if(isLegal(move, s))
-          moves = move :: moves
+          moves += move
       }
-      else
-        moves = moves ++ movesWhilePathClear(move, s)
+      else{
+        for(i <- List.range(1,range(move, s) + 1)){
+          //if(isLegal(move+1, s))
+            moves += move + i
+        }
+      }
+
     }
-    moves
+    moves.toList
   }
 }

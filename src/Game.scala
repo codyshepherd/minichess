@@ -15,8 +15,8 @@
   * */
 class Game(p1: Agent, p2: Agent) {
 
-  //val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
-  val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
+  val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
+  //val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
 
   val s: State = Params.stateFromFile(path ++ "pawnfwd.txt")
 

@@ -44,8 +44,9 @@ sealed abstract class Agent(p: Player) {
   ).withDefaultValue(Z())
 
   def stringToLoc(s: String): Loc = {
-    if(s.length != 2)
-      return new Loc(-1,-1)
+    if(s.length != 2) {
+      return new Loc(-1, -1)
+    }
 
     val row = s.last match {
       case '1' => 0
@@ -74,60 +75,22 @@ case class AI(p: Player) extends Agent(p) {
 
 
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
-    val zipped = mvs zip (for (move <- mvs) yield move.go(s))
-
-    var list: List[Move] = List()
-
-    s.on_move match {
-      case White() => {
-        list = (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.value < e2._2.value)) yield tup._1).toList
-        /*
-        val altlist = list
-        for(move <- altlist){
-          if(//!move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[King] && p.getPlayer == Black())
-          //|| !move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[Queen] && p.getPlayer == Black())
-          /*||*/ move.p.isInstanceOf[King]
-          /*|| move.p.isInstanceOf[Queen]*/)
-            list = move :: list.filterNot((m: Move) => m == move)
-          else if (move.p.getLoc == (1,3))
-            list = list.filterNot((m: Move) => m == move) :+ move
-        }
-        */
-        list
-      }
-      case Black() => {
-        list = (for (tup <- scala.util.Sorting.stableSort(zipped, (e1: (Move, State), e2: (Move, State)) => e1._2.value < e2._2.value)) yield tup._1).toList
-
-        /*
-        val altlist = list
-        for(move <- altlist){
-          if(//!isLoss(move.go(s))
-            //|| !move.go(s).pieces.contains((p: Piece) => p.isInstanceOf[Queen] && p.getPlayer == White())
-            /*||*/ move.p.isInstanceOf[King]
-            /*|| move.p.isInstanceOf[Queen]*/)
-            list = move :: list.filterNot((m: Move) => m == move)
-          else if (move.p.getLoc == (4,1))
-            list = list.filterNot((m: Move) => m == move) :+ move
-        }
-        */
-        list
-      }
-    }
-
-
+    mvs.sortBy(st => st.go(s).value)
   }
 
   def isWin(s: State): Boolean = {
     if(s.on_move == White()){
       val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
-      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King]))
+      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King])) {
         true
+      }
       else false
     }
     else{
       val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
-      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King]))
+      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King])) {
         true
+      }
       else false
     }
   }
@@ -135,27 +98,103 @@ case class AI(p: Player) extends Agent(p) {
   def isLoss(s: State): Boolean = {
      if(s.on_move == Black()){
       val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
-      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King]))
+      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King])) {
         true
+      }
       else false
     }
     else{
       val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
-      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King]))
+      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King])) {
         true
+      }
       else false
     }
   }
 
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double): Double = {
+    val sortedMoves = heuristicSort(s.legalMoves, s)
+    val firstMove = sortedMoves.headOption
+
     if (isWin(s)) {
-      return Double.PositiveInfinity
-      //return s.value
+      //return Double.PositiveInfinity
+      return s.value + 100
+    }
+
+    if (isLoss(s) || firstMove.isEmpty) {
+      //return Double.NegativeInfinity
+      return s.value - 100
+    }
+
+    if (depth <= 0) {
+      return s.value
+    }
+
+    var sHash: Long = Params.zobristHash(s, depth)
+
+    if(Params.isTtableOn) {
+      var hashAlpha = alpha
+      var hashBeta = beta
+      val tPos = Params.ttable get sHash
+      if (tPos.isDefined && tPos.get.depth >= depth) {
+        if (tPos.get.t == Exact())
+          return tPos.get.score
+        else if (tPos.get.t == Lower())
+          hashAlpha = math.max(hashAlpha, tPos.get.score)
+        else if (tPos.get.t == Upper())
+          hashBeta = math.min(hashBeta, tPos.get.score)
+        if (hashAlpha >= hashBeta)
+          return tPos.get.score
+      }
+    }
+
+
+    var sprime = firstMove.get.go(s)
+    var vprime = -alphaBeta(sprime, depth - 1, -beta, -alpha)
+
+    if(vprime > beta) {
+      if(Params.isTtableOn){
+        return store(sHash,depth,vprime,alpha,beta)
+      }
+      else {
+        return vprime
+      }
+    }
+
+    var tempAlpha = math.max(alpha, vprime)
+
+    for (nextMove <- sortedMoves.tail){
+      sprime = nextMove.go(s)
+      val v = -alphaBeta(sprime, depth - 1, -beta, -tempAlpha)
+      if(v >= beta){
+        if(Params.isTtableOn) {
+          return store(sHash, depth, v, alpha, beta)
+        }
+        else {
+          return v
+        }
+      }
+      vprime = math.max(v, vprime)
+      tempAlpha = math.max(tempAlpha, v)
+
+    }
+    if(Params.isTtableOn) {
+      store(sHash, depth, vprime, alpha, beta)
+    }
+    else {
+      vprime
+    }
+  }
+
+    /*
+    if (isWin(s)) {
+      //return Double.PositiveInfinity
+      return s.value + 100
     }
 
     if (isLoss(s)) {
-      return Double.NegativeInfinity
-      //return s.value
+      //return Double.NegativeInfinity
+      return s.value - 100
     }
 
     if (depth <= 0) {
@@ -180,16 +219,20 @@ case class AI(p: Player) extends Agent(p) {
 
     bestScore
   }
+  */
 
   def store(sHash: Long, depth: Int, bestValue: Double, alpha: Double, beta: Double): Double = {
 
     var ttFlag: NodeType = Exact()
-    if (bestValue <= alpha)
+    if (bestValue <= alpha) {
       ttFlag = Upper()
-    else if (bestValue >= beta)
+    }
+    else if (bestValue >= beta) {
       ttFlag = Lower()
-    else
+    }
+    else {
       ttFlag = Exact()
+    }
     Params.ttable += (sHash -> new Tpos(bestValue, depth, ttFlag))
 
     bestValue

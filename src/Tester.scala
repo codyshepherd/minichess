@@ -6,8 +6,8 @@
   * */
 class Tester {
 
-  //val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
-  val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
+  val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
+  //val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
   //val path = "~/IdeaProjects/minchess/src/butt/"
 
   val startPieces: List[Piece] = {
@@ -81,6 +81,9 @@ class Tester {
     val q1 = w0.pieces.filter((p: Piece) => p.getLoc == (5,1) && p.getPlayer == Black()).head
 
     assert(!q1.isLegal("fwd5", w0))
+
+    val w1 = Params.stringsToState("1 B\n.....\n.....\n..Q..\n.....\n.....\n.....".split("\n").toList)
+    System.err.println(w1.pieces.find(p => p.isInstanceOf[Queen]).get.legalMoves(w1))
   }
 
   def testKing(): Unit = {

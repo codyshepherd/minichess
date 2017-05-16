@@ -1,3 +1,5 @@
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by cody on 4/26/17.
   */
@@ -141,10 +143,14 @@ case class Rook(p: Player, l: Loc) extends Piece(p,l){
   }
 
   def legalMoves(s: State): List[String] = {
-    var moves: List[String] = List()
-    for(move <- funcList)
-      moves = moves ++ movesWhilePathClear(move, s)
-    moves
+    var moves: ListBuffer[String] = ListBuffer()
+    for(move <- funcList) {
+      for(i <- List.range(1,range(move, s) + 1)){
+        //if(isLegal(move+1, s))
+        moves += move + i
+      }
+    }
+    moves.toList
   }
 }
 
