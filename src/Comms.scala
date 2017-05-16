@@ -165,16 +165,21 @@ class Comms {
 
       val newstate = Params.cachedBestMove.go(state.get)
       if(Params.think)
-        throwaway = thinker.move(newstate)
+        try {
+          throwaway = thinker.move(newstate)
+        }
+      catch {
+        case e: Exception => throwaway = ""
+      }
 
       try {
         System.out.println(in.next() + "(dumped 5)")    // opponent move
         System.out.println(in.next() + "(dumped 6)")   //  blank space
-        recvd = in.next()                               // first line of state
+        recvd = in.next() // first line of state
         System.out.println(recvd)
       }
       catch {
-        case e: NoSuchElementException => return
+        case e: Exception => return
       }
 
       statestring = ""

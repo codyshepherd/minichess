@@ -3,6 +3,8 @@
   */
 import java.time.LocalTime
 import java.time.ZoneId
+
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 /** Static global values
@@ -34,7 +36,7 @@ object Params {
   val bishop = 3.0
   val rook = 5.0
   val queen = 9.0
-  val king = 50.0
+  val king = 0.0
 
   val mvWeight = 0.8
   val mbWeight = 0.2
@@ -125,8 +127,6 @@ object Params {
       w_value = vals._2,
       pieces = ps)
 
-    //System.err.println("stringToState state s: \n" +  state.toString)
-
     state
   }
 
@@ -137,21 +137,17 @@ object Params {
   }
 
   def getLegalMoves(s: State): List[Move] = {
-    //System.err.println("getLegalMoves s argument: " + s.toString)
-
     val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == s.on_move)
 
-    //System.err.println("getLegalMoves mypieces: " + mypieces.toString())
-
-    var moves: List[Move] = List()
+    var moves: scala.collection.mutable.ListBuffer[Move] = ListBuffer()
 
     for (piece <- mypieces){
       val pieceMoves = piece.legalMoves(s)
       for(move <- pieceMoves){
-        moves = stringToMove(piece, move) :: moves
+        moves += stringToMove(piece, move)
       }
     }
-    moves.distinct
+    moves.distinct.toList
   }
 
   def stringToMove(p: Piece, s: String): Move = {
@@ -193,37 +189,10 @@ object Params {
     new Move(p, s, (fromRow, fromCol), (toRow, toCol))
   }
 
-  /*
-  def zobristHash(s: State, depth: Int): Long = {
-    var h: Long = 0
-    var i = -1
-    for(c <- s.toString) {
-      i += 1
-      h = h ^ c.toLong ^ ztable(i)
-    }
-    System.err.println("Hash key: " + h)
-    h
-  }
-  */
-
   def zobristHash(s: State, depth: Int): Long = {
     var h:Long = 0
     val sorted = s.pieces.sortBy(p => (p.getLoc.x, p.getLoc.y))
 
-    /*
-    for(i <- List.range(0,rows)){
-      for(j <- List.range(0,cols)){
-        //System.err.println("i: " + i + " j: " + j)
-        val pc = s.pieces.find((p: Piece) => p.getLoc == (i,j))
-        if(pc.isDefined){
-          val ind = pieceIndices get pc.get.toString
-          //System.err.println("ind: " + ind.get)
-          if(ind.isDefined)
-            h = h ^ ztable(i*cols + j)(ind.get)
-        }
-      }
-    }
-    */
     for(piece <- sorted) {
       val ind = pieceIndices get piece.toString
       if(ind.isDefined)
@@ -231,11 +200,11 @@ object Params {
     }
 
     if(s.on_move == White())
-      //h = h ^ whiteValue ^ depth
-      h = h ^ whiteValue ^ s.moveNum //^ depth
+      h = h ^ whiteValue ^ depth
+      //h = h ^ whiteValue ^ s.moveNum ^ depth
     else
-      //h = h ^ blackValue ^ depth
-      h = h ^ blackValue ^ s.moveNum //^ depth
+      h = h ^ blackValue ^ depth
+      //h = h ^ blackValue ^ s.moveNum ^ depth
     h
   }
 }
