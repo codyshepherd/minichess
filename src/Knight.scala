@@ -53,7 +53,7 @@ case class Knight(p: Player, l: Loc) extends Piece(p,l){
       case _ =>
         val nnp = np.filterNot((x: Piece) => cappedPiece.isDefined && x == cappedPiece.get)  // remove capped piece from the board
         if(this.p == White())
-          new State(on_move = this.p.opposite, moveNum = s.moveNum, b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
+          new State(on_move = this.p.opposite, moveNum = s.moveNum,c b_value = if(cappedPiece.isDefined) s.b_value - cappedPiece.get.value else s.b_value,
             w_value = s.w_value, pieces = newq :: nnp) // update black's movenum to match this one, subtract value of
         // capped piece from black
         else

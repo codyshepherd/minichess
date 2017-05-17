@@ -100,13 +100,16 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
 
   def isLegal(mv: String, s: State): Boolean = {
     val move = mv.init
-    if (!funcList.contains(move) && !funcList.contains(mv))
+    if (!funcList.contains(move) && !funcList.contains(mv)) {
       return false
+    }
 
     val newLoc = getMovLoc(mv)
 
-    if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
+    //if (!isInBounds(newLoc) || !isPathClear(newLoc, s))
+    if (!isInBounds(newLoc)){
       return false
+    }
 
     val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
     maybePiece match {

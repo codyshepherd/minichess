@@ -76,8 +76,10 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
     System.err.println("mov: " + mov)
     */
 
-    if (!funcList.contains(mov))
+    if (!funcList.contains(mov)) {
       return new Loc(-1, -1)
+    }
+
     mov match {
       case "fwd" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y)
       case "bak" => new Loc(x = this.l.x - this.p.op(nToMov), y = this.l.y)
@@ -88,14 +90,16 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
 
   def isLegal(mv: String, s: State): Boolean = {
 
-    if (!funcList.contains(mv))
+    if (!funcList.contains(mv)) {
       return false
+    }
 
     val newLoc = getMovLoc(mv)
     //System.err.println("King- Move: " + mv + " newLoc: " + newLoc)
 
-    if (!isInBounds(newLoc))
+    if (!isInBounds(newLoc)) {
       return false
+    }
 
     val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
 
@@ -111,8 +115,9 @@ case class King(p: Player, l: Loc) extends Piece(p,l){
   def legalMoves(s: State): List[String] = {
     var moves: List[String] = List()
     for(move <- funcList){
-      if(isLegal(move,s))
-        moves = move:: moves
+      if(isLegal(move,s)) {
+        moves = move :: moves
+      }
     }
     moves
   }
