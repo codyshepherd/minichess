@@ -3,11 +3,13 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by cody on 4/26/17.
   */
-case class Queen(p: Player, l: Loc) extends Piece(p,l){
+case class Queen(p: Player, var l: Loc) extends Piece(p,l){
 
   val funcList = List("fwd", "bak", "left", "right", "fwdLeft", "fwdRight", "bakLeft", "bakRight")
 
   def value: Double = 9.0
+
+  def getMe(nl: Loc): Queen = {Queen(p, nl)}
 
   override def toString : String = {
     p match {
@@ -30,6 +32,7 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
     *
     *
     * */
+  /*
   def doMove(mv: String, s: State): State = {
     val newLoc = getMovLoc(mv)
 
@@ -65,6 +68,7 @@ case class Queen(p: Player, l: Loc) extends Piece(p,l){
             // and subtract value of capped piece from white
     }
   }
+  */
 
   /** Assumes that the number to move  has been tacked on to the end of the move string as a numeric character
     * */

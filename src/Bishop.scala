@@ -3,11 +3,13 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by cody on 4/26/17.
   */
-case class Bishop(p: Player, l: Loc) extends Piece(p,l){
+case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwdRight", "fwdLeft", "bakRight", "bakLeft", "fwd1", "bak1", "left1", "right1")
   val altFuncList = List("fwd1", "bak1", "left1", "right1")
 
   def value : Double = 3.0
+
+  def getMe(nl: Loc): Bishop = {Bishop(p, nl)}
 
   override def toString : String = {
     p match {
@@ -29,6 +31,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
 
   /** Assumes move has already been checked as legal
     * */
+  /*
   def doMove(mv: String, s: State): State = {
     val newLoc = getMovLoc(mv)
 
@@ -66,6 +69,7 @@ case class Bishop(p: Player, l: Loc) extends Piece(p,l){
             // and subtract value of capped piece from white
     }
   }
+  */
 
   def getMovLoc(m: String): Loc = {
     val nToMov: Int = m.last.toString.toInt

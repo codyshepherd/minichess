@@ -3,10 +3,12 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by cody on 4/26/17.
   */
-case class Rook(p: Player, l: Loc) extends Piece(p,l){
+case class Rook(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwd", "bak", "left", "right")
 
   def value : Double = 5.0
+
+  def getMe(nl: Loc): Rook = {Rook(p, nl)}
 
   override def toString : String = {
     p match {
@@ -28,6 +30,7 @@ case class Rook(p: Player, l: Loc) extends Piece(p,l){
 
   /** Assumes move has already been checked as legal
     * */
+  /*
   def doMove(mv: String, s: State): State = {
     val newLoc = getMovLoc(mv)
 
@@ -65,6 +68,7 @@ case class Rook(p: Player, l: Loc) extends Piece(p,l){
             // and subtract value of capped piece from white
     }
   }
+  */
 
   def getMovLoc(m: String): Loc = {
     val nToMov: Int = m.last.toString.toInt

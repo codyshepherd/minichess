@@ -46,7 +46,10 @@ object Params {
   val blackValue:Long = scala.util.Random.nextLong()
   val whiteValue:Long = scala.util.Random.nextLong()
 
-  var ttable: scala.collection.mutable.Map[Long, Tpos] = scala.collection.mutable.Map()
+  def lock: Boolean = if(!locked) {locked = true; true} else{false}
+  def unlock: Boolean = {locked = false; true}
+  var locked = false
+  var ttable: scala.collection.parallel.mutable.ParHashMap[Long, Tpos] = new scala.collection.parallel.mutable.ParHashMap()
 
   val pieceIndices: Map[String, Int] = Map(
     "P" -> 0,
@@ -139,6 +142,10 @@ object Params {
   def getLegalMoves(s: State): List[Move] = {
     val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == s.on_move)
 
+
+    //mypieces.par.map(p => p.legalMoves(s).par.map(j => stringToMove(p, j))).toList.flatten
+    mypieces.par.map(p => p.legalMoves(s).map(j => stringToMove(p, j))).toList.flatten
+    /*
     var moves: scala.collection.mutable.ListBuffer[Move] = ListBuffer()
 
     for (piece <- mypieces){
@@ -148,6 +155,7 @@ object Params {
       }
     }
     moves.distinct.toList
+    */
   }
 
   def stringToMove(p: Piece, s: String): Move = {

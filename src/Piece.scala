@@ -15,8 +15,32 @@ abstract class Piece(p: Player, l: Loc) {
   //val funcs: Map[String, State => State]
   val funcList: List[String]
   override def toString : String
+  def getMe(l: Loc): Piece
   override def equals(o: Any): Boolean
-  def doMove(mv: String, s: State): State
+  def doMove(mv: String, s: State): State = {
+    val newLoc = getMovLoc(mv)
+
+    val found = s.pieces.find(p => p.getLoc == newLoc)
+
+    val newp = getMe(newLoc)
+    if(found.isDefined){
+      new State( this.p,
+        if(this.p == White()) s.moveNum + 1 else s.moveNum,
+        if(this.p == Black()) s.b_value else s.b_value - found.get.value,
+        if(this.p == White()) s.w_value else s.w_value - found.get.value,
+        newp :: s.pieces.filterNot(p => p == this && p == found.get)
+      )
+    }
+    else{
+      new State( this.p,
+        if(this.p == White()) s.moveNum + 1 else s.moveNum,
+        s.w_value,
+        s.b_value,
+        newp :: s.pieces.filterNot(p => p == this)
+      )
+
+    }
+  }
   def getLoc: Loc = this.l
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc

@@ -9,7 +9,9 @@
   * */
 class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
 
-  lazy val legalMoves: List[Move] = scala.util.Random.shuffle(Params.getLegalMoves(this))
+  //lazy val legalMoves: List[Move] = scala.util.Random.shuffle(Params.getLegalMoves(this))
+  lazy val legalMoves: List[Move] = Params.getLegalMoves(this)
+  //lazy val legalMoves: List[Move] = pieces.par.map(p => p.legalMoves(this).map(s => Params.stringToMove(p, s))).toList.flatten
 
   lazy val value: Double = heuristicValue
 

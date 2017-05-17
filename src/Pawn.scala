@@ -9,9 +9,11 @@
   * It can do one of three things under appropriate conditions:
   * move forward, capture to the right, or capture to the left.
   * */
-case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
+case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
 
   def value : Double = 1.0
+
+  def getMe(nl: Loc): Pawn = {Pawn(p, nl)}
 
   /** funcs is a hash map of all the movement functions this piece can perform.
     * By convention its members should only be accessed through the items in
@@ -52,7 +54,7 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     }
   }
 
-  def doMove(mv: String, s: State): State = {
+  override def doMove(mv: String, s: State): State = {
     funcs(mv)(s)
   }
 
@@ -258,25 +260,17 @@ case class Pawn(p: Player, l: Loc) extends Piece(p,l) {
     if (!isInBounds(newLoc))
       return false
 
-    val maybePiece = s.pieces.find((p: Piece) => p.getLoc == newLoc)
+    val found = s.pieces.find(p => p.getLoc == newLoc)
 
-    maybePiece match {
-      case Some(a) => a.getPlayer match {   // if there is a piece at the new location
-        case c if c == this.p.opposite => {           // if the piece there is the opponent
-          if (mv == "capLeft" || mv == "capRight")  // if this move is a capture move, yes, otherwise no
-            true
-          else
-            false
-        }
-        case _ => false                     // if the piece there is our piece, then no
-        }
-      case None => {                        // if there is no piece
-        if (mv == "fwd")                    // as long as our move is "forward" sure, otherwise, no
-          true
-        else
-          false
-      }
+    if(mv == "capLeft" || mv == "capRight"){
+      if(found.isEmpty || found.get.getPlayer == this.p)
+        return false
     }
+    else{
+      if(found.isDefined)
+        return false
+    }
+    true
   }
 
   def legalMoves(s: State): List[String] = {

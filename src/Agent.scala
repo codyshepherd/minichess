@@ -177,6 +177,9 @@ case class AI(p: Player) extends Agent(p) {
       vprime = math.max(v, vprime)
       tempAlpha = math.max(tempAlpha, v)
 
+      if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
+        return alpha
+      }
     }
     if(Params.isTtableOn) {
       store(sHash, depth, vprime, alpha, beta)
@@ -233,7 +236,9 @@ case class AI(p: Player) extends Agent(p) {
     else {
       ttFlag = Exact()
     }
-    Params.ttable += (sHash -> new Tpos(bestValue, depth, ttFlag))
+
+    this.synchronized{ Params.ttable.update(sHash, new Tpos(bestValue, depth, ttFlag)) }
+
 
     bestValue
   }
@@ -334,7 +339,7 @@ case class AI(p: Player) extends Agent(p) {
     }
     else {
       //val sortedMoves = heuristicSort(s.legalMoves, s)
-      val sortedMoves = heuristicSort(s.legalMoves, s).par
+      val sortedMoves = heuristicSort(s.legalMoves, s).toParArray
 
       Params.cachedBestMove = sortedMoves.head
       Params.cachedBestMoveVal = Double.NegativeInfinity
@@ -363,18 +368,18 @@ case class AI(p: Player) extends Agent(p) {
         }
         counter = 0
         */
-        val results: List[Double] = sortedMoves.map((m: Move) => -alphaBeta(m.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)).toList
-        val i: Int = results.zipWithIndex.maxBy(_._1)._2
-        if(results(i) > Params.cachedBestMoveVal) {
-          Params.cachedBestMoveVal = i
-          Params.cachedBestMove = sortedMoves(i)
+        val results: List[(Double, Move)] = sortedMoves.par.map(m => (-alphaBeta(m.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity), m)).toList
+        val best: (Double, Move) = results.maxBy(_._1)
+        if(best._1 > Params.cachedBestMoveVal) {
+          Params.cachedBestMoveVal = best._1
+          Params.cachedBestMove = best._2
         }
-        if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime + s.moveNum/5) {
+        if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
           System.err.println("Returning move from depth " + (d - 1))
           return Params.cachedBestMove.toString
         }
       }
-      System.err.println("Returning move from depth " + Params.plyDepth)
+      System.err.println("Returning move from max depth " + Params.plyDepth)
       Params.cachedBestMove.toString
     }
   }
