@@ -333,8 +333,8 @@ case class AI(p: Player) extends Agent(p) {
       new Noop().toString
     }
     else {
-      val sortedMoves = heuristicSort(s.legalMoves, s)
       //val sortedMoves = heuristicSort(s.legalMoves, s)
+      val sortedMoves = heuristicSort(s.legalMoves, s).par
 
       Params.cachedBestMove = sortedMoves.head
       Params.cachedBestMoveVal = Double.NegativeInfinity
@@ -344,6 +344,7 @@ case class AI(p: Player) extends Agent(p) {
 
       for (d <- List.range(1, Params.plyDepth+1)) {
 
+        /*
         for (move <- sortedMoves) {
           counter += 1
           moveVal = -alphaBeta(move.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)
@@ -361,6 +362,17 @@ case class AI(p: Player) extends Agent(p) {
           Params.cachedBestMove = bestMove
         }
         counter = 0
+        */
+        val results: List[Double] = sortedMoves.map((m: Move) => -alphaBeta(m.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)).toList
+        val i: Int = results.zipWithIndex.maxBy(_._1)._2
+        if(results(i) > Params.cachedBestMoveVal) {
+          Params.cachedBestMoveVal = i
+          Params.cachedBestMove = sortedMoves(i)
+        }
+        if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime + s.moveNum/5) {
+          System.err.println("Returning move from depth " + (d - 1))
+          return Params.cachedBestMove.toString
+        }
       }
       System.err.println("Returning move from depth " + Params.plyDepth)
       Params.cachedBestMove.toString
