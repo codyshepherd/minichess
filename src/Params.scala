@@ -36,7 +36,7 @@ object Params {
   val bishop = 3.0
   val rook = 5.0
   val queen = 9.0
-  val king = 0.0
+  val king = 50.0
 
   val mvWeight = 0.8
   val mbWeight = 0.2
@@ -49,7 +49,7 @@ object Params {
   def lock: Boolean = if(!locked) {locked = true; true} else{false}
   def unlock: Boolean = {locked = false; true}
   var locked = false
-  var ttable: scala.collection.parallel.mutable.ParHashMap[Long, Tpos] = new scala.collection.parallel.mutable.ParHashMap()
+  var ttable: scala.collection.mutable.Map[Long, Tpos] = scala.collection.mutable.Map()
 
   val pieceIndices: Map[String, Int] = Map(
     "P" -> 0,
@@ -137,25 +137,6 @@ object Params {
     val lines: Iterator[String] = Source.fromFile(file).getLines()
 
     Params.stringsToState(lines.toList)
-  }
-
-  def getLegalMoves(s: State): List[Move] = {
-    val mypieces = s.pieces.filter((p:Piece) => p.getPlayer == s.on_move)
-
-
-    //mypieces.par.map(p => p.legalMoves(s).par.map(j => stringToMove(p, j))).toList.flatten
-    mypieces.par.map(p => p.legalMoves(s).map(j => stringToMove(p, j))).toList.flatten
-    /*
-    var moves: scala.collection.mutable.ListBuffer[Move] = ListBuffer()
-
-    for (piece <- mypieces){
-      val pieceMoves = piece.legalMoves(s)
-      for(move <- pieceMoves){
-        moves += stringToMove(piece, move)
-      }
-    }
-    moves.distinct.toList
-    */
   }
 
   def stringToMove(p: Piece, s: String): Move = {

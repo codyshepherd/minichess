@@ -74,6 +74,9 @@ class Tester {
     val wafter = wpawn.doMove("capLeft", wstart)
     val wafterfromfile = Params.stateFromFile(path ++ "pawncapleftwhite2.txt")
     assert(wafter == wafterfromfile)
+
+    System.err.println("White Pawn moves from start: ")
+    System.err.println(w0.pieces.find(p => p.getPlayer == White() && p.getLoc == (1,1)).get.legalMoves(w0))
   }
 
   def testQueen(): Unit = {
@@ -106,14 +109,20 @@ class Tester {
 
     val mvs = n1.legalMoves(w0)
     System.err.println(mvs)
-    assert(mvs.toSet == Set("longLeft1", "longRight1", "shortLeft2", "shortRight4"))
+    assert(mvs.toSet == Set("longLeft1", "longRight1"))
 
   }
 
   def testState(): Unit = {
     val w0 = Params.stateFromFile(path ++ "pawnfwd.txt")
+    val w1 = Params.stateFromFile(path ++ "eval.txt")
 
     assert(w0.value == 0)
+
+    for (move <- w1.legalMoves){
+      System.err.println(move.p)
+      System.err.println(move)
+    }
   }
 
   def testAll(): Unit = {

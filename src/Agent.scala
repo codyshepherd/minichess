@@ -72,63 +72,16 @@ sealed abstract class Agent(p: Player) {
 
 case class AI(p: Player) extends Agent(p) {
 
-
-
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
     mvs.sortBy(st => st.go(s).value)
   }
 
-  def isWin(s: State): Boolean = {
-    if(s.on_move == White()){
-      val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
-      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King])) {
-        true
-      }
-      else false
-    }
-    else{
-      val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
-      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King])) {
-        true
-      }
-      else false
-    }
-  }
-
-  def isLoss(s: State): Boolean = {
-     if(s.on_move == Black()){
-      val blackPieces = s.pieces.filter((p: Piece) => p.getPlayer == Black())
-      if(!blackPieces.exists((p: Piece) => p.isInstanceOf[King])) {
-        true
-      }
-      else false
-    }
-    else{
-      val whitePieces = s.pieces.filter((p: Piece) => p.getPlayer == White())
-      if(!whitePieces.exists((p: Piece) => p.isInstanceOf[King])) {
-        true
-      }
-      else false
-    }
-  }
-
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double): Double = {
+    if(depth <= 0 || s.pieces.count(p => p.isInstanceOf[King]) < 2)
+      return s.value
+
     val sortedMoves = heuristicSort(s.legalMoves, s)
     val firstMove = sortedMoves.headOption
-
-    if (isWin(s)) {
-      //return Double.PositiveInfinity
-      return s.value + 100
-    }
-
-    if (isLoss(s) || firstMove.isEmpty) {
-      //return Double.NegativeInfinity
-      return s.value - 100
-    }
-
-    if (depth <= 0) {
-      return s.value
-    }
 
     var sHash: Long = Params.zobristHash(s, depth)
 
@@ -177,9 +130,6 @@ case class AI(p: Player) extends Agent(p) {
       vprime = math.max(v, vprime)
       tempAlpha = math.max(tempAlpha, v)
 
-      if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
-        return alpha
-      }
     }
     if(Params.isTtableOn) {
       store(sHash, depth, vprime, alpha, beta)
@@ -188,41 +138,6 @@ case class AI(p: Player) extends Agent(p) {
       vprime
     }
   }
-
-    /*
-    if (isWin(s)) {
-      //return Double.PositiveInfinity
-      return s.value + 100
-    }
-
-    if (isLoss(s)) {
-      //return Double.NegativeInfinity
-      return s.value - 100
-    }
-
-    if (depth <= 0) {
-      return s.value
-    }
-
-    var bestScore = Double.NegativeInfinity
-
-    val movesList: List[Move] = heuristicSort(s.legalMoves,s)
-    var tempAlpha = alpha
-
-    for(move <- movesList){
-      val score = -alphaBeta(move.go(s),depth - 1, -beta, -tempAlpha)
-      if(score >= beta)
-        return score
-      if(score > bestScore){
-        bestScore = score
-        if(score > tempAlpha)
-          tempAlpha = score
-      }
-    }
-
-    bestScore
-  }
-  */
 
   def store(sHash: Long, depth: Int, bestValue: Double, alpha: Double, beta: Double): Double = {
 
@@ -237,109 +152,21 @@ case class AI(p: Player) extends Agent(p) {
       ttFlag = Exact()
     }
 
-    this.synchronized{ Params.ttable.update(sHash, new Tpos(bestValue, depth, ttFlag)) }
+    Params.ttable.update(sHash, new Tpos(bestValue, depth, ttFlag))
 
 
     bestValue
   }
-
-  /*
-  def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double): Double = {
-
-    //val playerPieces = s.pieces.filter((p: Piece) => p.getPlayer == s.on_move)
-    //val moves = (for (piece <- playerPieces) yield for (move <- piece.legalMoves(s)) yield piece.doMove(move, s)).flatten
-    val movesList: List[Move] = heuristicSort(s.legalMoves,s)
-    val moves: List[State] = for (mv <- movesList) yield mv.p.doMove(mv.mv,s)
-
-
-    if (isWin(s)) {
-      //return Double.PositiveInfinity
-      return s.value
-    }
-
-    if(isLoss(s)) {
-      //return Double.NegativeInfinity
-      return s.value
-    }
-
-    if (depth <= 0) {
-      return s.value
-    }
-
-    var tempAlpha = alpha
-    var tempBeta = beta
-
-    var sHash: Long = Params.zobristHash(s, depth)
-
-    if(Params.isTtableOn) {
-      val tPos = Params.ttable get sHash
-      if (tPos.isDefined && tPos.get.depth >= depth) {
-        if (tPos.get.t == Exact())
-          return tPos.get.score
-        else if (tPos.get.t == Lower())
-          tempAlpha = math.max(tempAlpha, tPos.get.score)
-        else if (tPos.get.t == Upper())
-          tempBeta = math.min(tempBeta, tPos.get.score)
-        if (tempAlpha >= tempBeta)
-          return tPos.get.score
-      }
-    }
-
-    var bestValue: Double = Double.NegativeInfinity
-    var v: Double = 0.0
-    var bestMove: State = moves.head
-
-    for (move <- moves) {
-
-      v = -alphaBeta(move, depth - 1, -/*beta*/tempBeta, -tempAlpha)
-      if (v > bestValue)
-        if (v > bestValue)
-        bestMove = move
-      bestValue = math.max(bestValue, v)
-      tempAlpha = math.max(tempAlpha, v)
-
-      if (tempAlpha >= tempBeta || LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime + s.moveNum/5) {
-        if(Params.isTtableOn) {
-          var ttFlag: NodeType = Exact()
-          if (bestValue <= alpha)
-            ttFlag = Upper()
-          else if (bestValue >= tempBeta)
-            ttFlag = Lower()
-          else
-            ttFlag = Exact()
-          Params.ttable += (sHash -> new Tpos(bestMove, bestValue, depth, ttFlag))
-        }
-        return bestValue // beta cut-off
-      }
-    }
-
-    if(Params.isTtableOn) {
-      var ttFlag: NodeType = Exact()
-      if (bestValue <= alpha)
-        ttFlag = Upper()
-      else if (bestValue >= tempBeta)
-        ttFlag = Lower()
-      else
-        ttFlag = Exact()
-      Params.ttable += (sHash -> new Tpos(bestMove, bestValue, depth, ttFlag))
-    }
-
-    bestValue
-  }
-  */
 
   def move(s: State): String = {
-    var counter = 0
     Params.startTime = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
 
     if (s.on_move != this.p){
       System.err.println("Not our turn, generating noop")
-      //xxx: think on opponent's time
       new Noop().toString
     }
     else {
-      //val sortedMoves = heuristicSort(s.legalMoves, s)
-      val sortedMoves = heuristicSort(s.legalMoves, s).toParArray
+      val sortedMoves = heuristicSort(s.legalMoves, s)
 
       Params.cachedBestMove = sortedMoves.head
       Params.cachedBestMoveVal = Double.NegativeInfinity
@@ -349,15 +176,13 @@ case class AI(p: Player) extends Agent(p) {
 
       for (d <- List.range(1, Params.plyDepth+1)) {
 
-        /*
         for (move <- sortedMoves) {
-          counter += 1
           moveVal = -alphaBeta(move.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)
           if (moveVal > bestMoveVal) {
             bestMoveVal = moveVal
             bestMove = move
           }
-          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime + s.moveNum/5) {
+          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
             System.err.println("Returning move from depth " + (d - 1))
             return Params.cachedBestMove.toString
           }
@@ -366,8 +191,7 @@ case class AI(p: Player) extends Agent(p) {
           Params.cachedBestMoveVal = bestMoveVal
           Params.cachedBestMove = bestMove
         }
-        counter = 0
-        */
+        /*
         val results: List[(Double, Move)] = sortedMoves.par.map(m => (-alphaBeta(m.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity), m)).toList
         val best: (Double, Move) = results.maxBy(_._1)
         if(best._1 > Params.cachedBestMoveVal) {
@@ -378,6 +202,7 @@ case class AI(p: Player) extends Agent(p) {
           System.err.println("Returning move from depth " + (d - 1))
           return Params.cachedBestMove.toString
         }
+        */
       }
       System.err.println("Returning move from max depth " + Params.plyDepth)
       Params.cachedBestMove.toString
@@ -385,45 +210,3 @@ case class AI(p: Player) extends Agent(p) {
   }
 
 }
-
-/*
-case class Human (p: Player) extends Agent(p) {
-
-  def move(s: State): Move = {
-    var legalMove = false
-    while(!legalMove) {
-      val line = scala.io.StdIn.readLine()
-      if (line.length == 5){
-        val mvstring = line.split("-")
-        val from = stringToLoc(mvstring.head)
-
-        val pieceToMove = s.pieces.find((p: Piece) => p.getLoc == from)
-
-        val to = stringToLoc(mvstring.last)
-
-        val move: String = pieceToMove match {
-          case Some(a) => {
-            var temp: String = ""
-            a.getPlayer match {
-              case Black() => {
-                if(to.x < from.x)
-                  temp = temp + "fwd"
-                else if(to.x > from.x)
-                  temp = temp + "bak"
-              }
-              case White() =>
-            }
-          }
-          case None =>
-        }
-      }
-    }
-    new Noop()
-  }
-
-  def stringToMove(mv: String, s: State): Move = {
-    new Move(pieceToMove, (colMap(from.head), rowMap(from.last)), (colMap(to.head), rowMap(to.last)))
-  }
-
-}
-*/

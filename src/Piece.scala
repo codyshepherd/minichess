@@ -24,19 +24,19 @@ abstract class Piece(p: Player, l: Loc) {
 
     val newp = getMe(newLoc)
     if(found.isDefined){
-      new State( this.p,
+      new State( this.p.opposite,
         if(this.p == White()) s.moveNum + 1 else s.moveNum,
         if(this.p == Black()) s.b_value else s.b_value - found.get.value,
         if(this.p == White()) s.w_value else s.w_value - found.get.value,
-        newp :: s.pieces.filterNot(p => p == this && p == found.get)
+        newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)
       )
     }
     else{
-      new State( this.p,
+      new State( this.p.opposite,
         if(this.p == White()) s.moveNum + 1 else s.moveNum,
         s.w_value,
         s.b_value,
-        newp :: s.pieces.filterNot(p => p == this)
+        newp :: s.pieces.filterNot(p => p.getLoc == this.l)
       )
 
     }
@@ -45,8 +45,32 @@ abstract class Piece(p: Player, l: Loc) {
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc
   def value : Double
-  def isLegal(mv: String, s: State): Boolean
+  def isLegal(mv: String, s: State): Boolean = {
+    if (!funcList.contains(mv.init))
+      return false
+
+    val lengthPossible = range(mv.init, s)
+
+    if(mv.last.toString.toInt > lengthPossible)
+      return false
+
+    val newLoc = getMovLoc(mv)
+    if(!isInBounds(newLoc))
+      return false
+
+    val found = s.pieces.find(p => p.getLoc == newLoc)
+
+    if(found.isDefined){
+      if(found.get.getPlayer == this.p)
+        return false
+      else
+        return true
+    }
+    true
+  }
+
   def legalMoves(s: State): List[String]
+
   def isInBounds(l:Loc): Boolean = {
     if (l.x < Params.bottom || l.x > Params.top)
       false
@@ -75,51 +99,4 @@ abstract class Piece(p: Player, l: Loc) {
     0
   }
 
-  def isPathClear(l: Loc, s: State): Boolean = {
-    if (this.l.x == l.x && this.l.y == l.y) {
-      true
-    }
-    else if (this.l.x == l.x) {
-      for (i <- List.range(math.min(this.l.y, l.y) + 1, math.max(this.l.y, l.y), 1)) {
-        if (s.pieces.exists((p: Piece) => p.getLoc == (this.l.x, i))) {
-          return false
-        }
-      }
-      true
-    }
-    else if (this.l.y == l.y) {
-      for(piece <- s.pieces)
-      for (i <- List.range(math.min(this.l.x, l.x) + 1, math.max(this.l.x, l.x), 1)) {
-        if (s.pieces.exists((p: Piece) => p.getLoc == (i, this.l.y))) {
-          return false
-        }
-      }
-      true
-    }
-    else {
-      val ydiff = l.y - this.l.y
-      val xdiff = l.x - this.l.x
-
-      val cols = ydiff match {
-        case yd if yd == 0 => List.fill(math.abs(xdiff - 1))(l.y)
-        case yd if yd > 0 => List.range(this.l.y + 1, l.y)
-        case yd if yd < 0 => List.range(this.l.y - 1, l.y, -1)
-      }
-
-      val rows = xdiff match {
-        case xd if xd == 0 => List.fill(math.abs(ydiff - 1))(l.x)
-        case xd if xd > 0 => List.range(this.l.x + 1, l.x)
-        case xd if xd < 0 => List.range(this.l.x - 1, l.x, -1)
-      }
-
-      val path = rows zip cols
-
-      for (step <- path) {
-        if (s.pieces.exists((p: Piece) => p.getLoc.x == step._1 && p.getLoc.y == step._2)) {
-          return false
-        }
-      }
-      true
-    }
-  }
 }

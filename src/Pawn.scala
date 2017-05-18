@@ -69,49 +69,25 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     *
     * Pawns have the special case that they could be promoted
     * */
-  def fwd(st: State): State = {
-    val np = st.pieces.filterNot((x: Piece) => x == this)
-
-    assert(np != st.pieces)
+  def fwd(s: State): State = {
     val newLoc = getMovLoc("fwd")
-    val addMe = Params.queen - 1.0
 
-    this.p match {
+    val found = s.pieces.find(p => p.getLoc == newLoc)
+    assert(found.isEmpty) // if this assertion fails, this moved was deemed legal and actually is not
 
-      case Black() =>
-        //check for promotion
-        if(newLoc.x == Params.bottom) {
-          // if promoted, make a queen
-          val newq = Queen(this.p, l = newLoc)
-          // add back the queen, modifying this player's value
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value, pieces = newq :: np)
-        }
-        else {
-          // not promoted, make a pawn
-          val newp = Pawn(p = this.p, l = newLoc)
-          // add back the pawn, no change to the value of either state
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value, pieces = newp :: np)
-        }
+    var newp: Piece = this
 
-      case White() =>
-        //check for promotion
-        if(newLoc.x == Params.top) {
-          // if promoted, make a queen
-          val newq = Queen(this.p, l = newLoc)
-          // return new state, adding the queen and modifying this player's value
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value + addMe, pieces = newq :: np )
-        }
-        else {
-          // if not promoted, make a pawn
-          val newp = Pawn(p = this.p, l = newLoc)
-          // add back the pawn, no change to value of either side
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value, w_value = st.w_value, pieces = newp :: np)
-        }
-    }
+    if ((this.p == White() && newLoc.x == Params.top) || (this.p == Black() && newLoc.x == Params.bottom))
+      newp = Queen(this.p, newLoc)
+    else
+      newp = Pawn(this.p, newLoc)
+
+    new State(this.p.opposite,
+      if (this.p == White()) s.moveNum + 1 else s.moveNum,
+      if (this.p == Black()) s.b_value - 1 + newp.value else s.b_value,
+      if (this.p == White()) s.w_value - 1 + newp.value else s.w_value,
+      newp :: s.pieces.filterNot(p => p.getLoc == this.l)
+    )
   }
 
   /** Returns the state derived when this piece captures to the right; i.e. captures, and
@@ -123,54 +99,25 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     * XXX: capRight and capLeft are now identical functions, except for the string passed to
     * getMovLoc(). I wonder if it would be worthwhile to consolidate them (probably)
     * */
-  def capRight(st: State): State = {
-    val newLoc = getMovLoc("capRight")                              // the new location the piece will move to
-    val removeMe = (x: Piece) => x == this
-    val removeCap = (mp: Piece) => mp.getLoc == newLoc
+  def capRight(s: State): State = {
+    val newLoc = getMovLoc("capRight")
 
-    val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
-    assert(capped.length == 1)
-    val subMe = capped(0).value                                     // the value of the captured piece
-    val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
-    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
-    assert(np != st.pieces)
+    val found = s.pieces.find(p => p.getLoc == newLoc)
+    assert(found.isDefined) // if this assertion fails, this moved was deemed legal and actually is not
 
-    this.p match {
+    var newp: Piece = this
 
-      case Black() =>
-        //check for Promotion
-        if(newLoc.x == Params.bottom){
-          // if promoted, make the new piece a queen
-          val newq = Queen(this.p, l = newLoc)
-          // return the new state, modifying the values for both sides
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = newq :: np)
-        }
-        else {
-          // not promoted, so just make a pawn with the new location
-          val newp = Pawn(p = this.p, l = newLoc)
-          // return the new state, modifying only the opponent's value
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = newp :: np)
-        }
+    if ((this.p == White() && newLoc.x == Params.top) || (this.p == Black() && newLoc.x == Params.bottom))
+      newp = Queen(this.p, newLoc)
+    else
+      newp = Pawn(this.p, newLoc)
 
-      case White() =>
-        // check for promotion
-        if(newLoc.x == Params.top){
-          // if promoted, make the new piece a queen
-          val newq = Queen(this.p, l = newLoc)
-          // return the new state, modifying the values for both sides
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = newq :: np)
-        }
-        else {
-          // if not promoted, make a pawn
-          val newp = Pawn(p = this.p, l = newLoc)
-          // add back the pawn, modify just the opponent' value
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = newp :: np)
-        }
-    }
+    new State(this.p.opposite,
+      if (this.p == White()) s.moveNum + 1 else s.moveNum,
+      if (this.p == Black()) s.b_value - 1 + newp.value else s.b_value - found.get.value,
+      if (this.p == White()) s.w_value - 1 + newp.value else s.w_value - found.get.value,
+      newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)
+    )
   }
 
   /** Returns the state derived when this piece captures to the left; i.e. captures,
@@ -179,56 +126,25 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     *
     * Assumes capturing to the left has already been deemed legal.
     * */
-  def capLeft(st: State): State = {
-    val newLoc = getMovLoc("capLeft")                              // the new location the piece will move to
+  def capLeft(s: State): State = {
+    val newLoc = getMovLoc("capLeft")
 
-    val removeMe = (x: Piece) => x == this
-    val removeCap = (mp: Piece) => mp.getLoc == newLoc
+    val found = s.pieces.find(p => p.getLoc == newLoc)
+    assert(found.isDefined)   // if this assertion fails, this moved was deemed legal and actually is not
 
-    val capped = st.pieces.filter(removeCap)                        // the piece that will be captured
-    assert(capped.length == 1)
-    val subMe = capped(0).value                                     // the value of the captured piece
-    val addMe = Params.queen - 1.0                                  // the added value of a queen over a pawn
-    val np = st.pieces.filterNot(removeMe).filterNot(removeCap)     // the pieces of this state without the moved piece
-    assert(np != st.pieces)
+    var newp: Piece = this
 
-    this.p match {
+    if((this.p == White() && newLoc.x == Params.top) || (this.p == Black() && newLoc.x == Params.bottom))
+      newp = Queen(this.p, newLoc)
+    else
+      newp = Pawn(this.p, newLoc)
 
-      case Black() =>
-        //check for Promotion
-        if(newLoc.x == Params.bottom){
-          // if promoted, make the new piece a queen
-          val newq = Queen(this.p, l = newLoc)
-          // return the new state, modifying the values for both sides
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value + addMe, w_value = st.w_value - subMe, pieces = newq :: np)
-        }
-        else {
-          // not promoted, so just make a pawn with the new location
-          val newp = Pawn(p = this.p, l = newLoc)
-          // return the new state, modifying only the opponent's value
-          // Only necessary to explicitly increment move when it becomes white's turn
-          new State(on_move = this.p.opposite, moveNum = st.moveNum+1, b_value = st.b_value, w_value = st.w_value - subMe, pieces = newp :: np)
-        }
-
-      case White() =>
-        // check for promotion
-        if(newLoc.x == Params.top){
-          // if promoted, make the new piece a queen
-          val newq = Queen(this.p, l = newLoc)
-          // return the new state, modifying the values for both sides
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value + addMe, pieces = newq :: np)
-        }
-        else {
-          // if not promoted, make a pawn
-          val newp = Pawn(p = this.p, l = newLoc)
-          // add back the pawn, modify just the opponent' value
-          // making black's move number match whites will implicitly increment it
-          new State(on_move = this.p.opposite, moveNum = st.moveNum, b_value = st.b_value - subMe, w_value = st.w_value, pieces = newp :: np)
-        }
-    }
-
+    new State( this.p.opposite,
+      if(this.p == White()) s.moveNum + 1 else s.moveNum,
+      if(this.p == Black()) s.b_value - 1 + newp.value else s.b_value - found.get.value,
+      if(this.p == White()) s.w_value - 1 + newp.value else s.w_value - found.get.value,
+      newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)
+    )
   }
 
   /** Returns the location (coordinates) on which this piece would end up if it performed
@@ -251,7 +167,7 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     }
   }
 
-  def isLegal(mv: String, s: State): Boolean = {
+  override def isLegal(mv: String, s: State): Boolean = {
     if (!funcList.contains(mv))
       return false
 
