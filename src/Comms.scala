@@ -113,8 +113,8 @@ class Comms {
 
   def play(p: Player): Unit = {
     System.err.println("Player: " + p.toString)
-    val player = AI(p)
-    val thinker = AI(p.opposite)
+    val player = AI(p, Params.turnTime)
+    val thinker = AI(p.opposite, Params.turnTime-2)
 
     var move = ""
     var throwaway = ""

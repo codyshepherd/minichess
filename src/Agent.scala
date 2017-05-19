@@ -8,7 +8,7 @@ import java.time.ZoneId
 
 /** This class represents the AI Player that makes moves and plays the game.
   * */
-sealed abstract class Agent(p: Player) {
+sealed abstract class Agent(p: Player, t: Int) {
 
   //Keep track of board piece value as you go -- state.value?
 
@@ -70,7 +70,7 @@ sealed abstract class Agent(p: Player) {
   def move(s: State): String
 }
 
-case class AI(p: Player) extends Agent(p) {
+case class AI(p: Player, t: Int) extends Agent(p, t) {
 
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
     mvs.sortBy(st => st.go(s).value)
@@ -81,6 +81,7 @@ case class AI(p: Player) extends Agent(p) {
       return s.value
 
     val sortedMoves = heuristicSort(s.legalMoves, s)
+    //val sortedMoves = scala.util.Random.shuffle(s.legalMoves)
     val firstMove = sortedMoves.headOption
 
     var sHash: Long = Params.zobristHash(s, depth)
@@ -182,7 +183,7 @@ case class AI(p: Player) extends Agent(p) {
             bestMoveVal = moveVal
             bestMove = move
           }
-          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
+          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > t) {
             System.err.println("Returning move from depth " + (d - 1))
             return Params.cachedBestMove.toString
           }

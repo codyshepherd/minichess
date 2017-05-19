@@ -68,7 +68,7 @@ class Terminal {
     }
 
     val state = Params.stateFromFile(Params.path + args(0))
-    val player = AI(state.on_move)
+    val player = AI(state.on_move, Params.turnTime)
     System.out.println(player.move(state))
   }
 

@@ -83,7 +83,7 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
       newp = Pawn(this.p, newLoc)
 
     new State(this.p.opposite,
-      if (this.p == White()) s.moveNum + 1 else s.moveNum,
+      if (this.p == Black()) s.moveNum + 1 else s.moveNum,
       if (this.p == Black()) s.b_value - 1 + newp.value else s.b_value,
       if (this.p == White()) s.w_value - 1 + newp.value else s.w_value,
       newp :: s.pieces.filterNot(p => p.getLoc == this.l)
@@ -113,7 +113,7 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
       newp = Pawn(this.p, newLoc)
 
     new State(this.p.opposite,
-      if (this.p == White()) s.moveNum + 1 else s.moveNum,
+      if (this.p == Black()) s.moveNum + 1 else s.moveNum,
       if (this.p == Black()) s.b_value - 1 + newp.value else s.b_value - found.get.value,
       if (this.p == White()) s.w_value - 1 + newp.value else s.w_value - found.get.value,
       newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)
@@ -140,7 +140,7 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
       newp = Pawn(this.p, newLoc)
 
     new State( this.p.opposite,
-      if(this.p == White()) s.moveNum + 1 else s.moveNum,
+      if(this.p == Black()) s.moveNum + 1 else s.moveNum,
       if(this.p == Black()) s.b_value - 1 + newp.value else s.b_value - found.get.value,
       if(this.p == White()) s.w_value - 1 + newp.value else s.w_value - found.get.value,
       newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)

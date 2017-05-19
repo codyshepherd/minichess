@@ -25,7 +25,7 @@ abstract class Piece(p: Player, l: Loc) {
     val newp = getMe(newLoc)
     if(found.isDefined){
       new State( this.p.opposite,
-        if(this.p == White()) s.moveNum + 1 else s.moveNum,
+        if(this.p == Black()) s.moveNum + 1 else s.moveNum,
         if(this.p == Black()) s.b_value else s.b_value - found.get.value,
         if(this.p == White()) s.w_value else s.w_value - found.get.value,
         newp :: s.pieces.filterNot(p => p.getLoc == this.l || p.getLoc == found.get.getLoc)
@@ -33,9 +33,9 @@ abstract class Piece(p: Player, l: Loc) {
     }
     else{
       new State( this.p.opposite,
-        if(this.p == White()) s.moveNum + 1 else s.moveNum,
-        s.w_value,
+        if(this.p == Black()) s.moveNum + 1 else s.moveNum,
         s.b_value,
+        s.w_value,
         newp :: s.pieces.filterNot(p => p.getLoc == this.l)
       )
 

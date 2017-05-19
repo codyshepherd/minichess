@@ -16,8 +16,8 @@ object Params {
   var isTtableOn: Boolean = true
   var think: Boolean = false
 
-  var plyDepth: Int = 6
-  var turnTime: Int = 7
+  var plyDepth: Int = 12
+  var turnTime: Int = 5
   var startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
   var cachedBestMove: Move = new Noop()
   var cachedBestMoveVal: Double = 0.0
@@ -84,10 +84,10 @@ object Params {
     var black = 0.0
 
     for(p <- l){
-      p.getPlayer match {
-        case Black() => black += p.value
-        case White() => white += p.value
-      }
+      if(p.getPlayer == White())
+        white = white + p.value
+      else
+        black = black + p.value
     }
     (black, white)
   }

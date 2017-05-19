@@ -7,9 +7,8 @@
 class Tester {
 
   //val path = "/Users/cody/IdeaProjects/minichess/src/teststates/"
-  //val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
-  //val path = "~/IdeaProjects/minchess/src/butt/"
-  val path = "/u/cls9/IdeaProjects/minichess/src/teststates/"
+  val path = "C:\\Users\\codys\\IdeaProjects\\minichess\\src\\teststates\\"
+  //val path = "/u/cls9/IdeaProjects/minichess/src/teststates/"
 
   val startPieces: List[Piece] = {
     List(
@@ -37,7 +36,7 @@ class Tester {
     //System.err.println("Actual: \n" + g.s.toString)
 
     //read series of states and moves from files
-    val g = new Game(AI(White()), AI(Black()))
+    val g = new Game(AI(White(), Params.turnTime), AI(Black(), Params.turnTime))
     assert(g.s == startState)
   }
 
@@ -115,13 +114,17 @@ class Tester {
 
   def testState(): Unit = {
     val w0 = Params.stateFromFile(path ++ "pawnfwd.txt")
-    val w1 = Params.stateFromFile(path ++ "eval.txt")
+    val w1 = Params.stateFromFile(path ++ "testmoves.txt")
 
     assert(w0.value == 0)
 
     for (move <- w1.legalMoves){
       System.err.println(move.p)
       System.err.println(move)
+      System.err.println(move.go(w1))
+      System.err.println(move.go(w1).b_value)
+      System.err.println(move.go(w1).w_value)
+      System.err.println(move.go(w1).value)
     }
   }
 
