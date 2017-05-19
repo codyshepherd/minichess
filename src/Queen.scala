@@ -1,7 +1,10 @@
+/** Queen.scala
+  * minichess
+  * Cody Shepherd
+  * */
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by cody on 4/26/17.
+/** The queen piece.
   */
 case class Queen(p: Player, var l: Loc) extends Piece(p,l){
 
@@ -36,13 +39,6 @@ case class Queen(p: Player, var l: Loc) extends Piece(p,l){
 
     assert(funcList.contains(mov))
 
-    /*
-    System.err.println("Queen")
-    System.err.println("m: " + m)
-    System.err.println("nToMov: " + nToMov)
-    System.err.println("mov: " + mov)
-    */
-
     mov match {
       case "fwd" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y)
       case "bak" => new Loc(x = this.l.x - this.p.op(nToMov), y = this.l.y)
@@ -61,7 +57,6 @@ case class Queen(p: Player, var l: Loc) extends Piece(p,l){
     for(move <- funcList) {
       for(i <- List.range(1,range(move, s) + 1)){
         if(isLegal(move + i.toString, s))
-        //System.err.println("Range given for " + move + ": " + range(move, s))
           moves += move + i.toString
       }
     }

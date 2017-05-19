@@ -1,9 +1,14 @@
-/**
-  * Created by cody on 4/26/17.
+/** Loc.scala
+  * minichess
+  * Cody Shepherd
   */
 
 /** Loc is just a named pair of x, y coordinates, where x is the row,
   * and y is the column of the board.
+  *
+  * It should be noted that Loc envisions the _bottom_ of the board as being
+  * row 0. In other words, the white King sits at 0,4, while the black King
+  * sits at 5,0 at the start of the game.
   * */
 sealed class Loc(val x: Int, val y: Int) {
 

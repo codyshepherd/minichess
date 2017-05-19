@@ -1,10 +1,14 @@
-/**
-  * Created by cody on 4/26/17.
+/** Pawn.scala
+  * minichess
+  * Cody Shepherd
   */
 
 
 
 /** Pawn is the basic piece, obviously.
+  *
+  * Pawn overrides the doMove function because its capture-only-on-diagonal represents
+  * a special case.
   *
   * It can do one of three things under appropriate conditions:
   * move forward, capture to the right, or capture to the left.
@@ -15,12 +19,7 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
 
   def getMe(nl: Loc): Pawn = {Pawn(p, nl)}
 
-  /** funcs is a hash map of all the movement functions this piece can perform.
-    * By convention its members should only be accessed through the items in
-    * this piece's funcList. This will allow generating a piece's moves to be
-    * at once constrained and programmatic.
-    *
-    * This member should probably be private?
+  /** string-to-function mapping that facilitates the doMove function.
     * */
   val funcs = Map(
     "fwd" -> PartialFunction(fwd),
@@ -62,10 +61,6 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     * state.
     *
     * Assumes that forward has already been deemed a legal move.
-    *
-    * (Should probably figure
-    * out a way to handle some possibility where this piece does not exist in the
-    * given state)
     *
     * Pawns have the special case that they could be promoted
     * */
@@ -154,11 +149,6 @@ case class Pawn(p: Player, var l: Loc) extends Piece(p,l) {
     * */
   def getMovLoc(m: String): Loc = {
     val newx = this.l.x + this.p.op(1)
-
-    //System.err.println("Pawn")
-    //System.err.println("m: " + m)
-    //System.err.println("nToMov: " + nToMov)
-    //System.err.println("mov: " + mov)
 
     m match {
       case "fwd" => new Loc(x = newx, y = this.l.y)

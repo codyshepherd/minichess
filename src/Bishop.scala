@@ -1,7 +1,12 @@
+/** Bishop.scala
+  * minichess
+  * Cody Shepherd
+  * */
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by cody on 4/26/17.
+/** The Bishop class represents the Bishop piece. It overrides the Piece.isLegal function
+  * because it has the special up-down-left-right non-capturing moves, which are special
+  * cases.
   */
 case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwdRight", "fwdLeft", "bakRight", "bakLeft", "fwd1", "bak1", "left1", "right1")
@@ -29,6 +34,9 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     }
   }
 
+  /** Returns the board locataion given a move-string from
+    * the funcsList.
+    * */
   def getMovLoc(m: String): Loc = {
     val nToMov: Int = m.last.toString.toInt
     var mov: String = ""
@@ -39,13 +47,6 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
       mov = m.init
 
     assert(funcList.contains(mov))
-
-    /*
-    System.err.println("Bishop")
-    System.err.println("m: " + m)
-    System.err.println("nToMov: " + nToMov)
-    System.err.println("mov: " + mov)
-    */
 
     mov match {
       case "fwd1" => new Loc(x = this.l.x + p.op(1), y = this.l.y)
@@ -60,7 +61,10 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     }
   }
 
-  override def isLegal(mv: String, s: State): Boolean = {
+  /** Returns whether this bishop can make the given move (from the funcList) within
+    * the given state.
+    * */
+ override def isLegal(mv: String, s: State): Boolean = {
     val move = mv.init
     if (!funcList.contains(move) && !funcList.contains(mv)) {
       return false
@@ -86,6 +90,8 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     else true                       // otherwise that location is empty, so yes, going there is legal
   }
 
+  /** Generates all legal moves that can be made by this piece within the given state.
+    * */
   def legalMoves(s: State): List[String] = {
     var moves: ListBuffer[String] = ListBuffer()
     for(move <- funcList) {

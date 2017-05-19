@@ -1,22 +1,22 @@
-/** Pieces.scala
+/** Piece.scala
+  * minichess
   * Cody Shepherd
   */
 
-/** Piece is an ADT from which Pawn extends. Having the base class here
-  * is a way for me to (hopefully) do less work when it comes time to
-  * implement MiniChess, as I can (hopefully) simply extend the other
-  * piece types from this class.
+/** Piece is the ADT from which all pieces extend.
   *
   * A piece works by transforming a state with one of its move functions.
-  * Its move functions are defined by name in funcList, and are stored in
-  * a hash map, whose keys are the values in funcList.
+  * Its possible moves are defined by name in funcList.
   * */
+
 abstract class Piece(p: Player, l: Loc) {
-  //val funcs: Map[String, State => State]
   val funcList: List[String]
   override def toString : String
   def getMe(l: Loc): Piece
   override def equals(o: Any): Boolean
+
+  /** Returns the state produced by executing the given move on the given state.
+    * */
   def doMove(mv: String, s: State): State = {
     val newLoc = getMovLoc(mv)
 
@@ -45,6 +45,10 @@ abstract class Piece(p: Player, l: Loc) {
   def getPlayer: Player = this.p
   def getMovLoc(m: String): Loc
   def value : Double
+
+  /** Returns whether the given move (a string from a piece's funcList) is
+    * legal within the given state.
+    * */
   def isLegal(mv: String, s: State): Boolean = {
     if (!funcList.contains(mv.init))
       return false
@@ -71,6 +75,8 @@ abstract class Piece(p: Player, l: Loc) {
 
   def legalMoves(s: State): List[String]
 
+  /** Returns whether or not the location is on the board.
+    * */
   def isInBounds(l:Loc): Boolean = {
     if (l.x < Params.bottom || l.x > Params.top)
       false
@@ -80,6 +86,9 @@ abstract class Piece(p: Player, l: Loc) {
       true
   }
 
+  /** Returns the farthest number of squares a piece can legally move (to include
+    * capture), given the move string and the state.
+    * */
   def range(mv: String, s: State): Int = {
     for(i <- List.range(1,7)){
       val newLoc = this.getMovLoc(mv + i)

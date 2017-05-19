@@ -1,5 +1,6 @@
-/**
-  * Created by cody on 4/26/17.
+/** Player.scala
+  * minichess
+  * Cody Shepherd
   */
 
 /** The Player ADT represents a marker for Black or White; whomever is on move.
