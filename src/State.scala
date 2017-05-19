@@ -25,7 +25,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
     moves.distinct.toList
   }
 
-  lazy val value: Double = heuristicValue
+  val value: Double = heuristicValue
 
   override def toString: String = {
     var str = ""
@@ -35,7 +35,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
       for (c <- List.range(0, Params.cols)) {
         val pc = pieces.find((x:Piece) => if (x.getLoc.x == r && x.getLoc.y == c) true else false)
         pc match {
-          case Some(a) => tempstr += a.toString    //TODO: Test this
+          case Some(a) => tempstr += a.toString
           case _ => tempstr += "."
         }
       }
@@ -54,11 +54,13 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
 
   def heuristicValue: Double = {
     if(Params.mobility) {
-      lazy val l = this.legalMoves.length
+      val l = this.legalMoves.length.toDouble
       if (on_move == White())
-        (w_value - b_value) * Params.mvWeight + l * Params.mbWeight
+        (w_value - b_value) + l
+        //(w_value - b_value) * Params.mvWeight + l * Params.mbWeight
       else
-        (b_value - w_value) * Params.mvWeight + l * Params.mbWeight
+        (b_value - w_value) + l
+        //(b_value - w_value) * Params.mvWeight + l * Params.mbWeight
     }
     else{
       if(on_move == White())
@@ -81,11 +83,9 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
     obj match {
       case s: State => {
         if (this.on_move != s.on_move) {
-          //System.err.println("States have different on_move")
           return false
         }
         if (this.b_value != s.b_value || this.w_value != s.w_value) {
-          //System.err.println("States have different value")
           return false
         }
 
@@ -95,14 +95,13 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
         for (tp <- this.pieces) {
           val j = s.pieces.find((x: Piece) => x == tp)
           j match {
-            case Some(sp) => //System.err.println("matching piece found")
+            case Some(sp) =>
             case _ => return false
           }
         }
         true
       }
       case _ => {
-        //System.err.println("Item not a State")
         false
       }
     }

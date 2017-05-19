@@ -155,7 +155,6 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
 
     Params.ttable.update(sHash, new Tpos(bestValue, depth, ttFlag))
 
-
     bestValue
   }
 
