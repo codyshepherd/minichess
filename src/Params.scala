@@ -1,38 +1,27 @@
-/** Params.scala
-  * minichess
-  * Cody Shepherd
+/**
+  * Created by cody on 4/27/17.
   */
+import java.time.LocalTime
+import java.time.ZoneId
 
-import java.time.{LocalTime, ZoneId}
-
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-/** This object holds global configuration values, plus a handful of "helper" functions
-  * that potentially need to be accessed by several classes but shouldn't require
-  * unique instances of a class.
+/** Static global values
   * */
 object Params {
-  //var path: String = "C:/Users/codys/IdeaProjects/minichess/src/"
-  val path:String = "/u/cls9/IdeaProjects/minichess/src/teststates/"
+  var path: String = "C:/Users/codys/IdeaProjects/minichess/src/"
 
-  /** Runtime option flags.
-    * */
-  var mobility: Boolean = false           // Is the mobility heuristic enabled
-  var isTtableOn: Boolean = true          // Is the ttable being used
-  var think: Boolean = false              // Is thinking during the opponent's turn enabled
-  var plyDepth: Int = 12                  // Max depth of negamax search
-  var turnTime: Int = 5                   // Max time allowed for iterative deepening
+  var mobility: Boolean = false
+  var isTtableOn: Boolean = true
+  var think: Boolean = false
 
-  /** Globally - cached best moves and values per turn.
-    * */
-  var m: Move = new Noop()
-  var mVal: Double = Double.NegativeInfinity
-  var mprime: Move = new Noop()
-  var mprimeVal: Double = Double.NegativeInfinity
-  var startTime:Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
+  var plyDepth: Int = 12
+  var turnTime: Int = 5
+  var startTime: Int = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
+  var cachedBestMove: Move = new Noop()
+  var cachedBestMoveVal: Double = 0.0
 
-  /** Global constants
-    * */
   val cols = 5
   val rows = 6
 
@@ -54,17 +43,14 @@ object Params {
 
   assert(mvWeight + mbWeight == 1.0)
 
-  /** Startup-time random values for use in Zobrist hash.
-    * */
   val blackValue:Long = scala.util.Random.nextLong()
   val whiteValue:Long = scala.util.Random.nextLong()
 
-  /** Transposition table
-    * */
+  def lock: Boolean = if(!locked) {locked = true; true} else{false}
+  def unlock: Boolean = {locked = false; true}
+  var locked = false
   var ttable: scala.collection.mutable.Map[Long, Tpos] = scala.collection.mutable.Map()
 
-  /** Mapping to facilitate zobrist hashing.
-    * */
   val pieceIndices: Map[String, Int] = Map(
     "P" -> 0,
     "N" -> 1,
@@ -90,14 +76,9 @@ object Params {
     "9" -> 21
   )
 
-  /** 2D array for generating zobrist hash.
-    * */
-  val ztable: Array[Array[Long]] = for(x <- Array.range(0,(rows+1)*cols))
-                                      yield for(y <- Array.range(0,pieceIndices.keys.size))
-                                        yield scala.util.Random.nextLong()
+  val ztable: Array[Array[Long]] = for(x <- Array.range(0,(rows+1)*cols)) yield for(y <- Array.range(0,pieceIndices.keys.size)) yield scala.util.Random.nextLong()
+  //val ztable: Array[Long] = for(x <- Array.range(0,(rows*2)*cols)) yield scala.util.Random.nextLong()
 
-  /** Returns the (blackvalue, whitevalue) pair of a list of pieces.
-    * */
   def computeVals(l: List[Piece]): (Double, Double) = {
     var white = 0.0
     var black = 0.0
@@ -111,9 +92,6 @@ object Params {
     (black, white)
   }
 
-  /** Returns a state from a list of strings, representing the imcs depiction
-    * of the game board read in line-by-line.
-    * */
   def stringsToState(s: List[String]): State = {
     var i = Params.top
     var j = 0
@@ -155,17 +133,12 @@ object Params {
     state
   }
 
-  /** Returns a state from an imcs board representation contained in the file referred to by
-    * the filename given.
-    * */
   def stateFromFile(file: String): State = {
     val lines: Iterator[String] = Source.fromFile(file).getLines()
 
     Params.stringsToState(lines.toList)
   }
 
-  /** Converts an imcs move string (e.g. a1-b2) to a Move object.
-    * */
   def stringToMove(p: Piece, s: String): Move = {
     val newLoc = p.getMovLoc(s)
     val fromRow: Row = p.getLoc.x match {
@@ -205,8 +178,6 @@ object Params {
     new Move(p, s, (fromRow, fromCol), (toRow, toCol))
   }
 
-  /** Generates a zobrist hash (Long value) of the given state, searched to the given depth.
-    * */
   def zobristHash(s: State, depth: Int): Long = {
     var h:Long = 0
     val sorted = s.pieces.sortBy(p => (p.getLoc.x, p.getLoc.y))

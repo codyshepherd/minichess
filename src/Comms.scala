@@ -1,15 +1,14 @@
-/** Comms.scala
-  * minichess
-  * Cody Shepherd
-  * */
-
 import java.io.PrintStream
 import java.net.{InetAddress, Socket}
 import java.util.NoSuchElementException
 
 import scala.io.BufferedSource
 
-/** This class is the socket communications layer for talking to imcs server.
+/**
+  * Created by cody on 5/1/17.
+  */
+
+/** Socket Communications layer for talking to imcs server
   * */
 class Comms {
 
@@ -23,9 +22,6 @@ class Comms {
 
   var gamenum = ""
 
-  /** Returns whether or not a connection has been made to the imcs server using the
-    * given username (u) and password (p)
-    * */
   def connect(u: String, p: String): Boolean = {
 
     try {
@@ -46,8 +42,6 @@ class Comms {
     true
   }
 
-  /** Offers a game of a specific color on the imcs server over a live connection.
-    * */
   def offer(color: String): Unit = {
     out.println("offer " + color)
     out.flush()
@@ -85,8 +79,6 @@ class Comms {
     }
   }
 
-  /** Accepts a game of a specific id number on the imcs server over a live connection.
-    * */
   def accept(id: String): Unit = {
     out.println("accept " + id)
     out.flush()
@@ -119,13 +111,6 @@ class Comms {
     play(p)
   }
 
-  /** Creates two AI players, reading input from the imcs server and feeding it to
-    * one or both players until the connection is closed.
-    *
-    * The second player is used if thinking on opponent's turn (Params.think) is enabled.
-    * The second player has two fewer seconds to think than the first player and is
-    * used primarily for populating the ttable.
-    * */
   def play(p: Player): Unit = {
     System.err.println("Player: " + p.toString)
     val player = AI(p, Params.turnTime)
@@ -178,7 +163,7 @@ class Comms {
       out.println(move)
       out.flush()
 
-      val newstate = Params.m.go(state.get)
+      val newstate = Params.cachedBestMove.go(state.get)
       if(Params.think)
         try {
           throwaway = thinker.move(newstate)

@@ -1,19 +1,22 @@
-/** Terminal.scala
-  * minichess
-  * Cody Shepherd
+import sun.font.TrueTypeFont
+
+/**
+  * Created by cody on 4/26/17.
   */
 
-/** Kickstarter for beginning a game; allows configuration based on a library of commands.
+/** Kickstarter for beginning a game; allows configuration based on cmd line params
   *
   * telnet imcs.svcs.cs.pdx.edu 3589
   * */
 class Terminal {
 
+  // AI or human player
+
+  // three-digit response codes from imcs server
+
   var uname: String = "yorick"
   var pword: String = "infinitejest"
 
-  /** This map represents all the possible terminal commands.
-    * */
   val cmds = Map(
     "offer" -> PartialFunction(offerRemote),
     "accept" -> PartialFunction(acceptRemote),

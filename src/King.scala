@@ -1,12 +1,7 @@
-/** King.scala
-  * minichess
-  * Cody Shepherd
-  * */
-
 import scala.collection.mutable.ListBuffer
 
-/** This class represents the King piece. It overrides the isLegal function because
-  * all its moves are of length 1.
+/**
+  * Created by cody on 4/26/17.
   */
 case class King(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwd1", "bak1", "left1", "right1", "fwdLeft1", "fwdRight1", "bakLeft1", "bakRight1")
