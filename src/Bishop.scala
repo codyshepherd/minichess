@@ -1,16 +1,28 @@
+/** Bishop.scala
+  * minichess
+  * Cody Shepherd
+  * */
+
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by cody on 4/26/17.
+/** The Bishop class represents the Bishop piece. It overrides the Piece.isLegal function
+  * because it has the special up-down-left-right non-capturing moves, which are special
+  * cases.
   */
 case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwdRight", "fwdLeft", "bakRight", "bakLeft", "fwd1", "bak1", "left1", "right1")
   val altFuncList = List("fwd1", "bak1", "left1", "right1")
 
+  /** The piece value
+    * */
   def value : Double = 3.0
 
+  /** Returns a bishop of the same player at a new location.
+    * */
   def getMe(nl: Loc): Bishop = {Bishop(p, nl)}
 
+  /** Returns the string representation of the bishop.
+    * */
   override def toString : String = {
     p match {
       case Black() => "b"
@@ -18,6 +30,8 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     }
   }
 
+  /** Returns whether two pieces are both bishops at the same location.
+    * */
   override def equals(o: Any): Boolean = {
     o match {
       case that: Bishop =>
@@ -29,6 +43,9 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     }
   }
 
+  /** Returns the board locataion given a move-string from
+    * the funcsList.
+    * */
   def getMovLoc(m: String): Loc = {
     val nToMov: Int = m.last.toString.toInt
     var mov: String = ""
@@ -60,6 +77,9 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     }
   }
 
+  /** Returns whether this bishop can make the given move (from the funcList) within
+    * the given state.
+    * */
   override def isLegal(mv: String, s: State): Boolean = {
     val move = mv.init
     if (!funcList.contains(move) && !funcList.contains(mv)) {
@@ -86,6 +106,8 @@ case class Bishop(p: Player, var l: Loc) extends Piece(p,l){
     else true                       // otherwise that location is empty, so yes, going there is legal
   }
 
+  /** Generates all legal moves that can be made by this piece within the given state.
+    * */
   def legalMoves(s: State): List[String] = {
     var moves: ListBuffer[String] = ListBuffer()
     for(move <- funcList) {

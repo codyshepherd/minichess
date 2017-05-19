@@ -1,18 +1,18 @@
+/** State.scala
+  * minichess
+  * Cody Shepherd
+  * */
+
 import scala.collection.mutable.ListBuffer
 
-/** State.scala
-  * Cody Shepherd
-  */
-
 /** This class represents a board state or position at some time t.
-  *
-  * Note that its "value" field is the only one that is mutable - this is to facilitate
-  * ttable functionality.
   * */
 class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var w_value: Double = 0, val pieces: List[Piece]){
 
+  /** The list of all legal moves the player on move can make within this state.
+    * */
   val legalMoves: List[Move] = {
-    val mypieces = pieces.filter(p => p.getPlayer == on_move)
+    val mypieces = pieces.par.filter(p => p.getPlayer == on_move)
 
     var moves: scala.collection.mutable.ListBuffer[Move] = ListBuffer()
 
@@ -22,7 +22,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
         moves += Params.stringToMove(piece, move)
       }
     }
-    moves.distinct.toList
+    moves.toList
   }
 
   val value: Double = heuristicValue
@@ -52,6 +52,11 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
 
   }
 
+  /** Returns the "heuristic value" of the state (from the on move-side's POV).
+    *
+    * The heuristic used here can be chosen from the terminal (material value, or
+    * material value + mobility)
+    * */
   def heuristicValue: Double = {
     if(Params.mobility) {
       val l = this.legalMoves.length.toDouble
@@ -81,7 +86,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
     * */
   override def equals(obj: scala.Any): Boolean = {
     obj match {
-      case s: State => {
+      case s: State =>
         if (this.on_move != s.on_move) {
           return false
         }
@@ -100,10 +105,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
           }
         }
         true
-      }
-      case _ => {
-        false
-      }
+      case _ => false
     }
   }
 }

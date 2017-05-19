@@ -1,9 +1,11 @@
-
-/**
-  * Created by cody on 4/26/17.
+/** Game.scala
+  * minichess
+  * Cody Shepherd
   */
 
-/** This is the game Referee; i.e. it pits two Agents against one another.
+/** THIS CLASS NOT CURRENTLY USED
+  *
+  * This is the game Referee; i.e. it pits two Agents against one another.
   *
   * Game "owns" the board; it takes a move from each player on its turn and updates the
   * board accordingly.

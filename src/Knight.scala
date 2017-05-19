@@ -1,7 +1,12 @@
+/** Knight.scala
+  * minichess
+  * Cody Shepherd
+  * */
+
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by cody on 4/26/17.
+/** This class represents the Knight piece. The isLegal function is overriden because this piece
+  * is a special case.
   */
 case class Knight(p: Player, var l: Loc) extends Piece(p,l){
 

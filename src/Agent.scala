@@ -1,16 +1,15 @@
-
-/**
-  * Created by cody on 4/26/17.
+/** Agent.scala
+  * minichess
+  * Cody Shepherd
   */
 
 import java.time.LocalTime
 import java.time.ZoneId
 
-/** This class represents the AI Player that makes moves and plays the game.
+/** Agent is a base class that allows extension to either an AI player (currently implemented
+  * below) and, in the future, a human player.
   * */
 sealed abstract class Agent(p: Player, t: Int) {
-
-  //Keep track of board piece value as you go -- state.value?
 
   //heuristics for move ordering:
     // Material Value
@@ -19,13 +18,8 @@ sealed abstract class Agent(p: Player, t: Int) {
     // Pawn formation
     // Pawn advancement / close to promotion
 
-  // dynamically increase search depth over time
-    // use remembered value from current depth -1
-    // use with ttable to amortize work done
-    // "Iterative deepening"
-
-  // Thinking on opponent's time
-
+  /** The following two maps allow fast and easy mapping of a read-in character to
+    * the appropriate row or column.*/
   val colMap: Map[Char, Col] = Map[Char, Col](
     'a' -> A(),
     'b' -> B(),
@@ -43,6 +37,9 @@ sealed abstract class Agent(p: Player, t: Int) {
     '6' -> R6()
   ).withDefaultValue(Z())
 
+  /** This method decodes one part of a move string like those used by the IMCS server
+    * and turns it into a location on the board.
+    * */
   def stringToLoc(s: String): Loc = {
     if(s.length != 2) {
       return new Loc(-1, -1)
@@ -67,18 +64,38 @@ sealed abstract class Agent(p: Player, t: Int) {
     new Loc(row, col)
   }
 
+  /** All Agents must implement a move function in order for the game to work.
+    * */
   def move(s: State): String
 }
 
+/** The AI class represents, surprise, an automated AI Player.
+  * */
 case class AI(p: Player, t: Int) extends Agent(p, t) {
 
+  /** Returns a list of moves sorted ascending by material value.
+    *
+    * This method is defined as a function to allow me to drop in a different heuristic
+    * at some later time. Currently it sorts by material value.
+    * */
   def heuristicSort(mvs: List[Move], s: State): List[Move] = {
     mvs.sortBy(st => st.go(s).value)
   }
 
-  def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double): Double = {
-    if(depth <= 0 || s.pieces.count(p => p.isInstanceOf[King]) < 2)
+  /** Returns the best-found value of the given state at the given depth.
+    *
+    * The negamax monte-carlo tree search with alpha-beta pruning and use of a
+    * transposition table.
+    * */
+  def negamax(s: State, depth: Int, alpha: Double, beta: Double): Double = {
+    if(depth <= 0 )
       return s.value
+
+    if(!s.pieces.exists(p => p.getPlayer == s.on_move.opposite && p.isInstanceOf[King]))
+      return Double.PositiveInfinity
+
+    if(!s.pieces.exists(p => p.getPlayer == s.on_move && p.isInstanceOf[King]))
+      return Double.NegativeInfinity
 
     val sortedMoves = heuristicSort(s.legalMoves, s)
     //val sortedMoves = scala.util.Random.shuffle(s.legalMoves)
@@ -104,7 +121,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
 
 
     var sprime = firstMove.get.go(s)
-    var vprime = -alphaBeta(sprime, depth - 1, -beta, -alpha)
+    var vprime = -negamax(sprime, depth - 1, -beta, -alpha)
 
     if(vprime > beta) {
       if(Params.isTtableOn){
@@ -119,7 +136,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
 
     for (nextMove <- sortedMoves.tail){
       sprime = nextMove.go(s)
-      val v = -alphaBeta(sprime, depth - 1, -beta, -tempAlpha)
+      val v = -negamax(sprime, depth - 1, -beta, -tempAlpha)
       if(v >= beta){
         if(Params.isTtableOn) {
           return store(sHash, depth, v, alpha, beta)
@@ -140,6 +157,12 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     }
   }
 
+  /** Returns the second (bestValue) argument.
+    *
+    * Stores a value in the transposition table, along with pertinent information (whether
+    * the value represents an upper or lower bound or an exact value, and the depth of search
+    * the value represents).
+    * */
   def store(sHash: Long, depth: Int, bestValue: Double, alpha: Double, beta: Double): Double = {
 
     var ttFlag: NodeType = Exact()
@@ -158,6 +181,11 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     bestValue
   }
 
+  /** Returns the best move from the current state as a "x1-y2" string, based on
+    * the results of negamax monte-carlo tree search with a-b pruning.
+    *
+    * Uses iterative deepening to search as deep as possible based on time constraints.
+    * */
   def move(s: State): String = {
     Params.startTime = LocalTime.now(ZoneId.systemDefault()).toSecondOfDay
 
@@ -166,46 +194,46 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
       new Noop().toString
     }
     else {
-      val sortedMoves = heuristicSort(s.legalMoves, s)
 
-      Params.cachedBestMove = sortedMoves.head
-      Params.cachedBestMoveVal = Double.NegativeInfinity
-      var bestMove: Move = Params.cachedBestMove
-      var bestMoveVal: Double = Double.NegativeInfinity
-      var moveVal: Double = 0.0
+      val sortedMoves = s.legalMoves.sortBy(st => st.go(s).value)
+      Params.mVal = Double.NegativeInfinity
+      Params.m = new Noop()
+      Params.mprimeVal = Double.NegativeInfinity
+      Params.mprime = new Noop()
 
-      for (d <- List.range(1, Params.plyDepth+1)) {
+      for(move <- sortedMoves){
+        val moveVal = -negamax(move.go(s),1, Double.NegativeInfinity, Double.PositiveInfinity)
+        if(moveVal > Params.mVal){
+          Params.mVal = moveVal
+          Params.m = move
+        }
+      }
 
-        for (move <- sortedMoves) {
-          moveVal = -alphaBeta(move.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)
-          if (moveVal > bestMoveVal) {
-            bestMoveVal = moveVal
-            bestMove = move
+      for(d <- List.range(2, Params.plyDepth+1)){
+        for(move <- sortedMoves){
+          val moveVal = -negamax(move.go(s),d, Double.NegativeInfinity, Double.PositiveInfinity)
+          if(moveVal > Params.mprimeVal){
+            Params.mprimeVal = moveVal
+            Params.mprime = move
           }
-          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > t) {
+          if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
             System.err.println("Returning move from depth " + (d - 1))
-            return Params.cachedBestMove.toString
+            return Params.m.toString
           }
         }
-        if(bestMoveVal > Params.cachedBestMoveVal) {
-          Params.cachedBestMoveVal = bestMoveVal
-          Params.cachedBestMove = bestMove
+        if(Params.mprimeVal == Double.NegativeInfinity)
+          return Params.m.toString
+        if(Params.mprimeVal == Double.PositiveInfinity) {
+          Params.mVal = Params.mprimeVal
+          Params.m = Params.mprime
+          return Params.mprime.toString
         }
-        /*
-        val results: List[(Double, Move)] = sortedMoves.par.map(m => (-alphaBeta(m.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity), m)).toList
-        val best: (Double, Move) = results.maxBy(_._1)
-        if(best._1 > Params.cachedBestMoveVal) {
-          Params.cachedBestMoveVal = best._1
-          Params.cachedBestMove = best._2
-        }
-        if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > Params.turnTime) {
-          System.err.println("Returning move from depth " + (d - 1))
-          return Params.cachedBestMove.toString
-        }
-        */
+
+        Params.mVal = Params.mprimeVal
+        Params.m = Params.mprime
       }
       System.err.println("Returning move from max depth " + Params.plyDepth)
-      Params.cachedBestMove.toString
+      Params.m.toString
     }
   }
 

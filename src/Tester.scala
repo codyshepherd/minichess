@@ -1,8 +1,11 @@
-/**
-  * Created by cody on 4/26/17.
+/** Tester.scala
+  * minichess
+  * Cody Shepherd
   */
 
 /** Performs (unit) testing on codebase.
+  *
+  * Coverage is by no means total.
   * */
 class Tester {
 

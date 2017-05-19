@@ -1,7 +1,11 @@
+/** Rook.scala
+  * minichess
+  * Cody Shepherd
+  * */
+
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Created by cody on 4/26/17.
+/** The rook piece.
   */
 case class Rook(p: Player, var l: Loc) extends Piece(p,l){
   val funcList = List("fwd", "bak", "left", "right")
@@ -33,12 +37,6 @@ case class Rook(p: Player, var l: Loc) extends Piece(p,l){
     val mov: String = m.init
 
     assert(funcList.contains(mov))
-    /*
-    System.err.println("Rook")
-    System.err.println("m: " + m)
-    System.err.println("nToMov: " + nToMov)
-    System.err.println("mov: " + mov)
-    */
 
     mov match {
       case "fwd" => new Loc(x = this.l.x + this.p.op(nToMov), y = this.l.y)
