@@ -72,6 +72,17 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     * at some later time. Currently it sorts by material value.
     * */
  def heuristicSort(mvs: List[Move], s: State): List[Move] = {
+   if (Params.isTtableOn) {
+     mvs.sortBy((st: Move) => {
+       val nextstate = st.go(s)
+       val hash = Params.zobristHash(nextstate, 1)
+       val tPos = Params.ttable get hash
+       if(tPos.isDefined)
+         tPos.get.score
+       else nextstate.value
+     })
+   }
+   else
     mvs.sortBy(st => st.go(s).value)
   }
 
@@ -81,8 +92,14 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     * transposition table.
     * */
   def alphaBeta(s: State, depth: Int, alpha: Double, beta: Double): Double = {
-    if(depth <= 0 || s.pieces.count(p => p.isInstanceOf[King]) < 2)
+    if(depth <= 0 )
       return s.value
+
+    if (!s.pieces.exists(p => p.isInstanceOf[King] && p.getPlayer == s.on_move.opposite))
+      return Double.PositiveInfinity
+
+    if (!s.pieces.exists(p => p.isInstanceOf[King] && p.getPlayer == s.on_move))
+      return Double.NegativeInfinity
 
     val sortedMoves = heuristicSort(s.legalMoves, s)
     //val sortedMoves = scala.util.Random.shuffle(s.legalMoves)
@@ -91,21 +108,17 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     var sHash: Long = Params.zobristHash(s, depth)
 
     if(Params.isTtableOn) {
-      var hashAlpha = alpha
-      var hashBeta = beta
       val tPos = Params.ttable get sHash
       if (tPos.isDefined && tPos.get.depth >= depth) {
-        if (tPos.get.t == Exact())
+        val hashalpha = tPos.get.alpha
+        val hashbeta = tPos.get.beta
+        val hashval = tPos.get.score
+        if ((hashalpha < hashval && hashval < hashbeta)
+            || (hashalpha <= alpha && beta <= hashbeta)) {
           return tPos.get.score
-        else if (tPos.get.t == Lower())
-          hashAlpha = math.max(hashAlpha, tPos.get.score)
-        else if (tPos.get.t == Upper())
-          hashBeta = math.min(hashBeta, tPos.get.score)
-        if (hashAlpha >= hashBeta)
-          return tPos.get.score
+        }
       }
     }
-
 
     var sprime = firstMove.get.go(s)
     var vprime = -alphaBeta(sprime, depth - 1, -beta, -alpha)
@@ -152,18 +165,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     * */
   def store(sHash: Long, depth: Int, bestValue: Double, alpha: Double, beta: Double): Double = {
 
-    var ttFlag: NodeType = Exact()
-    if (bestValue <= alpha) {
-      ttFlag = Upper()
-    }
-    else if (bestValue >= beta) {
-      ttFlag = Lower()
-    }
-    else {
-      ttFlag = Exact()
-    }
-
-    Params.ttable.update(sHash, new Tpos(bestValue, depth, ttFlag))
+    Params.ttable.update(sHash, new Tpos(alpha, beta, bestValue, depth))
 
     bestValue
   }
@@ -189,16 +191,28 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
       var bestMoveVal: Double = Double.NegativeInfinity
       var moveVal: Double = 0.0
 
-      for (d <- List.range(1, Params.plyDepth+1)) {
+      for (d <- List.range(1, Params.plyDepth+1, 2)) {
 
         for (move <- sortedMoves) {
-          moveVal = -alphaBeta(move.go(s), d, Double.NegativeInfinity, Double.PositiveInfinity)
+          val nextstate = move.go(s)
+          val hash = Params.zobristHash(nextstate, 1)
+          val tPos = Params.ttable get hash
+
+          if(tPos.isDefined) {
+            if(tPos.get.depth >= d)
+              moveVal = -tPos.get.score
+            else
+              moveVal = -alphaBeta(nextstate, d, tPos.get.score - 1, tPos.get.score + 1)
+          }
+          else
+            moveVal = -alphaBeta(nextstate, d, Double.NegativeInfinity, Double.PositiveInfinity)
+
           if (moveVal > bestMoveVal) {
             bestMoveVal = moveVal
             bestMove = move
           }
           if (LocalTime.now(ZoneId.systemDefault()).toSecondOfDay - Params.startTime > t) {
-            System.err.println("Returning move from depth " + (d - 1))
+            System.err.println("Returning move from depth " + (d - 2))
             return Params.cachedBestMove.toString
           }
         }

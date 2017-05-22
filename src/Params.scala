@@ -21,7 +21,7 @@ object Params {
   var mobility: Boolean = false
   var isTtableOn: Boolean = true
   var think: Boolean = false
-  var plyDepth: Int = 12
+  var plyDepth: Int = 21
   var turnTime: Int = 5
 
   /** Globally - cached best moves and values per turn.
@@ -214,12 +214,16 @@ object Params {
         h = h ^ ztable(piece.getLoc.x*cols + piece.getLoc.y)(ind.get)
     }
 
-    if(s.on_move == White())
-      h = h ^ whiteValue ^ depth
+    if(s.on_move == White()) {
+      //h = h ^ whiteValue ^ depth
+      h = h ^ whiteValue ^ s.moveNum
       //h = h ^ whiteValue ^ s.moveNum ^ depth
-    else
-      h = h ^ blackValue ^ depth
+    }
+    else {
+      //h = h ^ blackValue ^ depth
+      h = h ^ blackValue ^ s.moveNum
       //h = h ^ blackValue ^ s.moveNum ^ depth
+    }
     h
   }
 }

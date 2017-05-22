@@ -10,5 +10,5 @@ case class Exact() extends NodeType
 case class Upper() extends NodeType
 case class Lower() extends NodeType
 
-class Tpos(val score: Double, val depth: Int, val t: NodeType)
+class Tpos(val alpha: Double, val beta: Double, val score: Double, val depth: Int)
 
