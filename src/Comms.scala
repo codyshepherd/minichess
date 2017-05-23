@@ -128,7 +128,8 @@ class Comms {
   def play(p: Player): Unit = {
     System.err.println("Player: " + p.toString)
     val player = AI(p, Params.turnTime)
-    val thinker = AI(p.opposite, Params.turnTime-2)
+    //val thinker = AI(p.opposite, Params.turnTime-2)
+    val thinker = AI(p.opposite, Params.turnTime)
 
     var move = ""
     var throwaway = ""
@@ -177,7 +178,8 @@ class Comms {
       out.println(move)
       out.flush()
 
-      val newstate = Params.cachedBestMove.go(state.get)
+      val movetaken = Params.cachedBestMove
+      val newstate = movetaken.go(state.get)
       if(Params.think)
         try {
           throwaway = thinker.move(newstate)

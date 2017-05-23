@@ -11,7 +11,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
 
   /** The list of all legal moves the player on move can make within this state.
     * */
-  val legalMoves: List[Move] = {
+  lazy val legalMoves: List[Move] = {
     val mypieces = pieces.filter(p => p.getPlayer == on_move)
 
     var moves: scala.collection.mutable.ListBuffer[Move] = ListBuffer()
@@ -25,7 +25,7 @@ class State(val on_move: Player, val moveNum: Int, var b_value: Double = 0, var 
     moves.distinct.toList
   }
 
-  val value: Double = heuristicValue
+  lazy val value: Double = heuristicValue
 
   override def toString: String = {
     var str = ""

@@ -105,7 +105,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
     //val sortedMoves = scala.util.Random.shuffle(s.legalMoves)
     val firstMove = sortedMoves.headOption
 
-    var sHash: Long = Params.zobristHash(s, depth)
+    lazy val sHash: Long = Params.zobristHash(s, depth)
 
     if(Params.isTtableOn) {
       val tPos = Params.ttable get sHash
@@ -139,7 +139,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
       val v = -alphaBeta(sprime, depth - 1, -beta, -tempAlpha)
       if(v >= beta){
         if(Params.isTtableOn) {
-          return store(sHash, depth, v, alpha, beta)
+          return store(sHash, depth, v, tempAlpha, beta)
         }
         else {
           return v
@@ -150,7 +150,7 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
 
     }
     if(Params.isTtableOn) {
-      store(sHash, depth, vprime, alpha, beta)
+      store(sHash, depth, vprime, tempAlpha, beta)
     }
     else {
       vprime
@@ -199,10 +199,12 @@ case class AI(p: Player, t: Int) extends Agent(p, t) {
           val tPos = Params.ttable get hash
 
           if(tPos.isDefined) {
+            val value = tPos.get.score
             if(tPos.get.depth >= d)
-              moveVal = -tPos.get.score
+              moveVal = -value
             else
-              moveVal = -alphaBeta(nextstate, d, tPos.get.score - 1, tPos.get.score + 1)
+              //moveVal = -alphaBeta(nextstate, d, tPos.get.alpha, tPos.get.beta)
+              moveVal = -alphaBeta(nextstate, d, value - 1, value + 1)
           }
           else
             moveVal = -alphaBeta(nextstate, d, Double.NegativeInfinity, Double.PositiveInfinity)
