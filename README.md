@@ -1,12 +1,6 @@
-Cody Shepherd
+# Minichess Player
 
-CS 542
-
-Final Project
-
-IMCS usernames: yorick, pooryorick
-
-##Organization
+## Organization
 
 This program was written using an object-oriented approach, combined with functional-style list processing, probably
 to the detriment of performance. 
@@ -32,7 +26,7 @@ maximum search depth, and evaluating a single state from a file without having t
 The communications layer connects with the imcs server, and instantiates an Agent to play a game. It manages
 parsing of imcs data and responses.
 
-##Features
+## Features
 
 - Negamax search with alpha-beta pruning and narrow-window search
 - Iterative Deepening
@@ -42,7 +36,7 @@ parsing of imcs data and responses.
 - "One-shot" evaluation: reading a state from a file and searching it within given constraints for best move
 - Material value or MV + mobility heuristic for state evaluation
 
-###Experimental
+### Experimental
 
 Some of the features that I played around with included:
 
@@ -54,13 +48,13 @@ division required during this step degraded performance.
 AI from getting stuck in a loop with another computer player. It was somewhat effective, but ultimately was removed in 
 attempt to boost performance.
 
-###Not Included due to time constraints
+### Not Included due to time constraints
 
 - Opening Book / Endgame Database
 - A better state evaluation heuristic
 - Probably other things I've forgotten.
 
-##Performance
+## Performance
 
 Given a five-second turn window, my program will be able to get depth 6 search out of its iterative deepening algorithm.
 This is not great and primarily due to some asymptotic behavior in move generation. It could be fixed, but I don't have enough
@@ -70,13 +64,13 @@ The program otherwise plays correctly and doesn't have any real blind spots that
 server without problem, although it cannot serve as an intermediate "terminal" for imcs, i.e. it can only accept and offer
 games, and cannot send any other imcs commands, nor interpret them.
 
-##Bugs
+## Bugs
 
 The only real bug in the program (that I know of at this time) is that it can sometime get into a loop with another, 
 similarly-programmed player. Two AI players might both simply move their King back and forth into a draw because neither 
 finds a novel approach to their move evaluation. 
 
-##Testing and Evaluation
+## Testing and Evaluation
 
 I included unit tests. Coverage is not complete. Unit testing started off as systematic (i.e. my goal was to test everything
 as I built it), but because of time constraints turned into "testing as-needed." Many of the tests in the testing class
